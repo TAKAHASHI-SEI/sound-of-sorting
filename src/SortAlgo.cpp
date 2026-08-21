@@ -1182,7 +1182,7 @@ void BitonicSort(SortArray& A)
 // sort it back into the order a parallel sorting network would perform the
 // swaps in
 
-namespace BitonicSortNetworkNS {
+namespace SortNetworkNS {
 
 struct swappair_type
 {
@@ -1192,10 +1192,15 @@ struct swappair_type
     // depth of recursions: sort / merge
     unsigned int sort_depth, merge_depth;
 
+    // direction for the merge-depth tie-break
+    bool reverse_merge_depth;
+
     swappair_type(unsigned int _i, unsigned int _j,
-                  unsigned int _sort_depth, unsigned int _merge_depth)
+                  unsigned int _sort_depth, unsigned int _merge_depth,
+                  bool _reverse_merge_depth)
         : i(_i), j(_j),
-          sort_depth(_sort_depth), merge_depth(_merge_depth)
+          sort_depth(_sort_depth), merge_depth(_merge_depth),
+          reverse_merge_depth(_reverse_merge_depth)
     { }
 
     // order relation for sorting swaps
@@ -1205,14 +1210,19 @@ struct swappair_type
             return sort_depth > b.sort_depth;
 
         if (merge_depth != b.merge_depth)
-            return merge_depth < b.merge_depth;
+        {
+            if (reverse_merge_depth)
+                return merge_depth > b.merge_depth;
+            else
+                return merge_depth < b.merge_depth;
+        }
 
         return i < b.i;
     }
 };
 
 typedef std::vector<swappair_type> sequence_type;
-std::vector<swappair_type> sequence;
+sequence_type sequence;
 
 void replay(SortArray& A)
 {
@@ -1224,6 +1234,14 @@ void replay(SortArray& A)
     }
 }
 
+} // namespace SortNetworkNS
+
+namespace BitonicSortNetworkNS {
+
+using SortNetworkNS::sequence;
+using SortNetworkNS::sequence_type;
+using SortNetworkNS::swappair_type;
+
 static const bool ASCENDING = true; // sorting direction
 
 static void compare(SortArray& /* A */, unsigned int i, unsigned int j, bool dir,
@@ -1232,9 +1250,9 @@ static void compare(SortArray& /* A */, unsigned int i, unsigned int j, bool dir
     // if (dir == (A[i] > A[j])) A.swap(i, j);
 
     if (dir)
-        sequence.push_back( swappair_type(i,j, sort_depth, merge_depth) );
+        sequence.push_back( swappair_type(i,j, sort_depth, merge_depth, false) );
     else
-        sequence.push_back( swappair_type(j,i, sort_depth, merge_depth) );
+        sequence.push_back( swappair_type(j,i, sort_depth, merge_depth, false) );
 }
 
 static void bitonicMerge(SortArray& A, unsigned int lo, unsigned int n, bool dir,
@@ -1269,7 +1287,7 @@ void sort(SortArray& A)
     sequence.clear();
     bitonicSort(A, 0, A.size(), BitonicSortNS::ASCENDING, 0);
     std::sort(sequence.begin(), sequence.end());
-    replay(A);
+    SortNetworkNS::replay(A);
     sequence.clear();
 }
 
@@ -1291,45 +1309,9 @@ void BitonicSortNetwork(SortArray& A)
 
 namespace BatcherSortNetworkNS {
 
-struct swappair_type
-{
-    // swapped positions
-    unsigned int i,j;
-
-    // depth of recursions: sort / merge
-    unsigned int sort_depth, merge_depth;
-
-    swappair_type(unsigned int _i, unsigned int _j,
-                  unsigned int _sort_depth, unsigned int _merge_depth)
-        : i(_i), j(_j),
-          sort_depth(_sort_depth), merge_depth(_merge_depth)
-    { }
-
-    // order relation for sorting swaps
-    bool operator < (const swappair_type& b) const
-    {
-        if (sort_depth != b.sort_depth)
-            return sort_depth > b.sort_depth;
-
-        if (merge_depth != b.merge_depth)
-            return merge_depth > b.merge_depth;
-
-        return i < b.i;
-    }
-};
-
-typedef std::vector<swappair_type> sequence_type;
-std::vector<swappair_type> sequence;
-
-void replay(SortArray& A)
-{
-    for (sequence_type::const_iterator si = sequence.begin();
-         si != sequence.end(); ++si)
-    {
-        if (A[si->i] > A[si->j])
-            A.swap(si->i, si->j);
-    }
-}
+using SortNetworkNS::sequence;
+using SortNetworkNS::sequence_type;
+using SortNetworkNS::swappair_type;
 
 static void compare(SortArray& A, unsigned int i, unsigned int j,
                     unsigned int sort_depth, unsigned int merge_depth)
@@ -1338,7 +1320,7 @@ static void compare(SortArray& A, unsigned int i, unsigned int j,
     ASSERT(i < j);
     if (j >= A.size()) return;
 
-    sequence.push_back( swappair_type(i,j, sort_depth, merge_depth) );
+    sequence.push_back( swappair_type(i,j, sort_depth, merge_depth, true) );
 
     //if (A[i] > A[j]) A.swap(i, j);
 }
@@ -1386,7 +1368,7 @@ void sort(SortArray& A)
 
     oddEvenMergeSort(A, 0, n, 0);
     std::sort(sequence.begin(), sequence.end());
-    replay(A);
+    SortNetworkNS::replay(A);
     sequence.clear();
 }
 

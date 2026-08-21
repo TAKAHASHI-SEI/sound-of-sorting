@@ -28,6 +28,27 @@
 
 extern void SoundAccess(size_t i);
 
+static void FillSkewed(std::vector<ArrayItem>& array, size_t arraysize,
+                       unsigned int exponent)
+{
+    for (size_t i = 0; i < array.size(); ++i)
+    {
+        // normalize to [-1,+1]
+        double x = (2.0 * (double)i / array.size()) - 1.0;
+        // calculate x^exponent
+        double v = x;
+        for (unsigned int p = 1; p < exponent; ++p)
+            v *= x;
+        // normalize to array size
+        double w = (v + 1.0) / 2.0 * arraysize + 1;
+        // decrease resolution for more equal values
+        w /= 3.0;
+        array[i] = ArrayItem(w + 1);
+    }
+
+    std::random_shuffle(array.begin(), array.end());
+}
+
 // *****************************************************************************
 // *** Comparisons of ArrayItems
 
@@ -137,37 +158,11 @@ void SortArray::FillData(unsigned int schema, size_t arraysize)
     }
     else if (schema == 3) // Cubic skew of [1,n]
     {
-        for (size_t i = 0; i < m_array.size(); ++i)
-        {
-            // normalize to [-1,+1]
-            double x = (2.0 * (double)i / m_array.size()) - 1.0;
-            // calculate x^3
-            double v = x * x * x;
-            // normalize to array size
-            double w = (v + 1.0) / 2.0 * arraysize + 1;
-            // decrease resolution for more equal values
-            w /= 3.0;
-            m_array[i] = ArrayItem(w + 1);
-        }
-
-        std::random_shuffle(m_array.begin(), m_array.end());
+        FillSkewed(m_array, arraysize, 3);
     }
     else if (schema == 4) // Quintic skew of [1,n]
     {
-        for (size_t i = 0; i < m_array.size(); ++i)
-        {
-            // normalize to [-1,+1]
-            double x = (2.0 * (double)i / m_array.size()) - 1.0;
-            // calculate x^5
-            double v = x * x * x * x * x;
-            // normalize to array size
-            double w = (v + 1.0) / 2.0 * arraysize + 1;
-            // decrease resolution for more equal values
-            w /= 3.0;
-            m_array[i] = ArrayItem(w + 1);
-        }
-
-        std::random_shuffle(m_array.begin(), m_array.end());
+        FillSkewed(m_array, arraysize, 5);
     }
     else if (schema == 5) // shuffled n-2 equal values in [1,n]
     {

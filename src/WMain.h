@@ -39,6 +39,13 @@ static const size_t g_framerate = 30;
 
 class WMain : public WMain_wxg
 {
+private:
+    /// join and dispose of the algorithm thread
+    void JoinAlgorithmThread();
+
+    /// refill the array using the selected input type
+    void FillArray();
+
 public:
     enum {
         ID_RUN_FINISHED = wxID_HIGHEST + 2000

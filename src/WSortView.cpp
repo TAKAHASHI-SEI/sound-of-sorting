@@ -179,44 +179,40 @@ void WSortView::paint(wxDC& dc, const wxSize& dcsize)
     // bar/1px gaps.
     if ( fabs(wbar - 1.0) < 0.1 && fabs(bstep - 2.0) < 0.1 ) wbar = 2, bstep = 2;
 
+    static const wxColour colors[] = {
+        wxColour(255,255,255),        //  0 white
+        wxColour(255,0,0),            //  1 red
+        wxColour(0,255,0),            //  2 green
+        wxColour(0,255,255),          //  3 cyan
+        wxColour(255,255,0),           //  4 yellow
+        wxColour(255,0,255),           //  5 magenta
+        wxColour(255,192,128),         //  6 orange
+        wxColour(255,128,192),         //  7 pink
+        wxColour(128,192,255),         //  8 darker cyan
+        wxColour(192,255,128),         //  9 darker green
+        wxColour(192,128,255),         // 10 purple
+        wxColour(128,255,192),         // 11 light green
+        wxColour(128,128,255),         // 12 blue
+        wxColour(192,128,192),         // 13 dark purple
+        wxColour(128,192,192),         // 14 dark cyan
+        wxColour(192,192,128),         // 15 dark yellow
+        wxColour(0,128,255),           // 16 blue/cyan mix
+    };
+
     static const wxPen pens[] = {
-        *wxWHITE_PEN,
-        *wxRED_PEN,
-        *wxGREEN_PEN,
-        *wxCYAN_PEN,
-        wxPen(wxColour(255,255,0)),   //  4 yellow
-        wxPen(wxColour(255,0,255)),   //  5 magenta
-        wxPen(wxColour(255,192,128)), //  6 orange
-        wxPen(wxColour(255,128,192)), //  7 pink
-        wxPen(wxColour(128,192,255)), //  8 darker cyan
-        wxPen(wxColour(192,255,128)), //  9 darker green
-        wxPen(wxColour(192,128,255)), // 10 purple
-        wxPen(wxColour(128,255,192)), // 11 light green
-        wxPen(wxColour(128,128,255)), // 12 blue
-        wxPen(wxColour(192,128,192)), // 13 dark purple
-        wxPen(wxColour(128,192,192)), // 14 dark cyan
-        wxPen(wxColour(192,192,128)), // 15 dark yellow
-        wxPen(wxColour(0,128,255)),   // 16 blue/cyan mix
+        wxPen(colors[0]), wxPen(colors[1]), wxPen(colors[2]), wxPen(colors[3]),
+        wxPen(colors[4]), wxPen(colors[5]), wxPen(colors[6]), wxPen(colors[7]),
+        wxPen(colors[8]), wxPen(colors[9]), wxPen(colors[10]), wxPen(colors[11]),
+        wxPen(colors[12]), wxPen(colors[13]), wxPen(colors[14]), wxPen(colors[15]),
+        wxPen(colors[16])
     };
 
     static const wxBrush brushes[] = {
-        *wxWHITE_BRUSH,
-        *wxRED_BRUSH,
-        *wxGREEN_BRUSH,
-        *wxCYAN_BRUSH,
-        wxBrush(wxColour(255,255,0)),   //  4 yellow
-        wxBrush(wxColour(255,0,255)),   //  5 magenta
-        wxBrush(wxColour(255,192,128)), //  6 orange
-        wxBrush(wxColour(255,128,192)), //  7 pink
-        wxBrush(wxColour(128,192,255)), //  8 darker cyan
-        wxBrush(wxColour(192,255,128)), //  9 darker green
-        wxBrush(wxColour(192,128,255)), // 10 purple
-        wxBrush(wxColour(128,255,192)), // 11 light green
-        wxBrush(wxColour(128,128,255)), // 12 blue
-        wxBrush(wxColour(192,128,192)), // 13 dark purple
-        wxBrush(wxColour(128,192,192)), // 14 dark cyan
-        wxBrush(wxColour(192,192,128)), // 15 dark yellow
-        wxBrush(wxColour(0,128,255)),   // 16 blue/cyan mix
+        wxBrush(colors[0]), wxBrush(colors[1]), wxBrush(colors[2]), wxBrush(colors[3]),
+        wxBrush(colors[4]), wxBrush(colors[5]), wxBrush(colors[6]), wxBrush(colors[7]),
+        wxBrush(colors[8]), wxBrush(colors[9]), wxBrush(colors[10]), wxBrush(colors[11]),
+        wxBrush(colors[12]), wxBrush(colors[13]), wxBrush(colors[14]), wxBrush(colors[15]),
+        wxBrush(colors[16])
     };
 
     wxMutexLocker lock(m_array.m_mutex);
@@ -226,7 +222,7 @@ void WSortView::paint(wxDC& dc, const wxSize& dcsize)
     {
         int clr = m_array.GetIndexColor(i);
 
-        ASSERT(clr < (int)(sizeof(brushes) / sizeof(brushes[0])));
+        ASSERT(clr < (int)(sizeof(colors) / sizeof(colors[0])));
         dc.SetPen( pens[clr] );
         dc.SetBrush( brushes[clr] );
 

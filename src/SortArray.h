@@ -179,6 +179,25 @@ protected:
     /// pointer to delay function
     SortDelay*  m_delay;
 
+    /// record an array access and optionally count it
+    void RecordAccess(size_t i, bool count)
+    {
+        if (m_access1.index != i)
+        {
+            {
+                wxMutexLocker lock(m_mutex);
+                ASSERT(lock.IsOk());
+
+                m_access1 = i;
+                m_access_list.push_back(i);
+            }
+
+            // skip wait for duplicate accesses
+            if (!count) --g_access_count;
+            OnAccess();
+        }
+    }
+
 public:
     /// mutex for accesses and watch items
     wxMutex     m_mutex;
@@ -268,19 +287,7 @@ public:
     {
         ASSERT(i < m_array.size());
 
-        if (m_access1.index != i)
-        {
-            {
-                wxMutexLocker lock(m_mutex);
-                ASSERT(lock.IsOk());
-
-                m_access1 = i;
-                m_access_list.push_back(i);
-            }
-
-            // skip wait for duplicate accesses
-            OnAccess();
-        }
+        RecordAccess(i, true);
 
         return m_array[i];
     }
@@ -290,19 +297,7 @@ public:
     {
         ASSERT(i < m_array.size());
 
-        if (m_access1.index != i)
-        {
-            {
-                wxMutexLocker lock(m_mutex);
-                ASSERT(lock.IsOk());
-
-                m_access1 = i;
-                m_access_list.push_back(i);
-            }
-
-            // skip wait for duplicate accesses
-            OnAccess();
-        }
+        RecordAccess(i, true);
 
         RecalcInversions();
         return m_array[i];
@@ -313,20 +308,7 @@ public:
     {
         ASSERT(i < m_array.size());
 
-        if (m_access1.index != i)
-        {
-            {
-                wxMutexLocker lock(m_mutex);
-                ASSERT(lock.IsOk());
-
-                m_access1 = i;
-                m_access_list.push_back(i);
-            }
-
-            // skip wait for duplicate accesses
-            --g_access_count;
-            OnAccess();
-        }
+        RecordAccess(i, false);
 
         return m_array[i];
     }

@@ -108,6 +108,20 @@ WMain::~WMain()
     SDL_CloseAudio();
 }
 
+void WMain::JoinAlgorithmThread()
+{
+    m_thread->Wait();
+    g_algo_running = false;
+
+    delete m_thread;
+    m_thread = NULL;
+}
+
+void WMain::FillArray()
+{
+    sortview->m_array.FillData( inputTypeChoice->GetSelection(), m_array_size );
+}
+
 BEGIN_EVENT_TABLE(WMain, WMain_wxg)
 
     EVT_TOGGLEBUTTON(ID_RUN_BUTTON, WMain::OnRunButton)
@@ -142,7 +156,7 @@ bool WMain::RunAlgorithm()
     else
     {
         if (sortview->m_array.IsSorted())
-            sortview->m_array.FillData( inputTypeChoice->GetSelection(), m_array_size );
+            FillArray();
 
         sortview->SetStepwise(false);
 
@@ -170,11 +184,7 @@ void WMain::AbortAlgorithm()
     if (m_thread->IsPaused()) m_thread->Resume();
     sortview->SetStepwise(false);
 
-    m_thread->Wait();
-    g_algo_running = false;
-
-    delete m_thread;
-    m_thread = NULL;
+    JoinAlgorithmThread();
 }
 
 void WMain::OnRunButton(wxCommandEvent &event)
@@ -182,11 +192,7 @@ void WMain::OnRunButton(wxCommandEvent &event)
     // join finished thread
     if (m_thread && !m_thread->IsAlive())
     {
-        m_thread->Wait();
-        g_algo_running = false;
-
-        delete m_thread;
-        m_thread = NULL;
+        JoinAlgorithmThread();
     }
 
     if (event.IsChecked())
@@ -217,11 +223,7 @@ void WMain::OnRunFinished(wxCommandEvent&)
     // join finished thread
     if (m_thread)
     {
-        m_thread->Wait();
-        g_algo_running = false;
-
-        delete m_thread;
-        m_thread = NULL;
+        JoinAlgorithmThread();
     }
 
     runButton->SetValue(false);
@@ -234,7 +236,7 @@ void WMain::OnResetButton(wxCommandEvent&)
 
     runButton->SetValue(false);
 
-    sortview->m_array.FillData( inputTypeChoice->GetSelection(), m_array_size );
+    FillArray();
 }
 
 void WMain::OnStepButton(wxCommandEvent&)
@@ -277,7 +279,7 @@ void WMain::OnRandomButton(wxCommandEvent&)
     AbortAlgorithm();
 
     algoList->SetSelection( rand() % algoList->GetCount() );
-    sortview->m_array.FillData( inputTypeChoice->GetSelection(), m_array_size );
+    FillArray();
 
     RunAlgorithm();
 
@@ -402,7 +404,7 @@ void WMain::OnAlgoListDClick(wxCommandEvent&)
     {
         AbortAlgorithm();
 
-        sortview->m_array.FillData( inputTypeChoice->GetSelection(), m_array_size );
+        FillArray();
     }
 
     // start new one
