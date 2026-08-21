@@ -167,6 +167,10 @@ static std::vector<Oscillator> s_osclist;
 /// global timestamp of callback in sound sample units
 static size_t s_pos = 0;
 
+/// mutex protecting s_osclist and s_pos, which are shared between the audio
+/// thread and the main thread
+static wxMutex s_mutex_osclist;
+
 /// add an oscillator to the list (reuse finished ones)
 static void add_oscillator(double freq, size_t p, size_t pstart, size_t duration)
 {
@@ -224,11 +228,16 @@ static double arrayindex_to_frequency(double aindex)
 /// reset internal sound data (called from main thread)
 void SoundReset()
 {
-    wxMutexLocker lock(s_mutex_access_list);
+    wxMutexLocker lock(s_mutex_osclist);
     ASSERT(lock.IsOk());
 
     s_pos = 0;
     s_osclist.clear();
+
+    wxMutexLocker lock_access(s_mutex_access_list);
+    ASSERT(lock_access.IsOk());
+
+    s_access_list.clear();
 }
 
 /// sound generator callback run by SDL
@@ -238,6 +247,11 @@ void SoundCallback(void* udata, Uint8 *stream, int len)
         memset(stream, 0, len);
         return;
     }
+
+    // lock the oscillator list and sample time for the whole callback, as the
+    // main thread may reset them concurrently
+    wxMutexLocker lock_osclist(s_mutex_osclist);
+    ASSERT(lock_osclist.IsOk());
 
     // current sample time (32-bit size_t wraps after 27 hours, 64-bit size_t
     // wraps after 13 million years).
@@ -256,11 +270,16 @@ void SoundCallback(void* udata, Uint8 *stream, int len)
         ASSERT(lock.IsOk());
 
         // spread out access list over time of one callback
-        double pscale = (double)size / s_access_list.size();
+        double pscale = s_access_list.size()
+            ? (double)size / s_access_list.size() : 0.0;
+
+        // array_max() is the normalization divisor, it must be positive
+        double amax = sv.m_array.array_max() > 0
+            ? (double)sv.m_array.array_max() : 1.0;
 
         for (size_t i = 0; i < s_access_list.size(); ++i)
         {
-            double relindex = s_access_list[i] / (double)sv.m_array.array_max();
+            double relindex = s_access_list[i] / amax;
             double freq = arrayindex_to_frequency(relindex);
 
             add_oscillator( freq, p, p + i * pscale,
@@ -293,8 +312,12 @@ void SoundCallback(void* udata, Uint8 *stream, int len)
     }
     else
     {
-        // count maximum wave amplitude
+        // count maximum wave amplitude, keeping it away from zero: it is used
+        // as a divisor below, where zero would yield inf/NaN samples.
+        static const double min_vol = 1.0 / 1024.0;
+
         double vol = *std::max_element(wave.begin(), wave.end());
+        if (vol < min_vol) vol = min_vol;
 
         static double oldvol = 1.0;
 
@@ -304,6 +327,7 @@ void SoundCallback(void* udata, Uint8 *stream, int len)
         else {
             // but slowly ramp up volume
             vol = 0.9 * oldvol;
+            if (vol < min_vol) vol = min_vol;
         }
 
         // convert waveform to samples, with ramping of volume
