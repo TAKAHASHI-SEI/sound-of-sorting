@@ -89,6 +89,14 @@ void WSortView::DoDelay(double delay)
         wxSemaError se = m_step_semaphore.WaitTimeout(200);
         if (se == wxSEMA_NO_ERROR)
             break;
+        if (se != wxSEMA_TIMEOUT)
+        {
+            // a real semaphore failure: stepwise mode cannot work anymore, so
+            // report it and leave stepwise mode instead of spinning forever.
+            wxLogError(_T("Error waiting for semaphore: %d"), se);
+            m_stepwise = false;
+            break;
+        }
         // else timeout, recheck m_stepwise and loop
         wmain->m_thread->TestDestroy();
         wmain->m_thread->Yield();

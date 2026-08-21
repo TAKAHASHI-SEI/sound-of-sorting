@@ -182,6 +182,8 @@ void SortArray::FillData(unsigned int schema, size_t arraysize)
     }
     else // fallback
     {
+        wxLogWarning(_T("Unknown input schema %u, using random shuffle instead."),
+                     schema);
         return FillData(0, arraysize);
     }
 
@@ -198,6 +200,8 @@ void SortArray::OnAccess()
 
 bool SortArray::CheckSorted()
 {
+    if (size() == 0) return (m_is_sorted = true);
+
     unmark_all();
     // needed because iterator instrumentated algorithms may have changed the array
     RecalcInversions();

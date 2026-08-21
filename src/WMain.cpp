@@ -30,6 +30,7 @@ WMain::WMain(wxWindow* parent)
     : WMain_wxg(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE)
 {
     m_thread = NULL;
+    m_audio_opened = false;
     g_sound_on = false;
 
     recordButton->Hide();
@@ -91,6 +92,10 @@ WMain::WMain(wxWindow* parent)
     if ( SDL_OpenAudio(&sdlaudiospec, NULL) < 0 ) {
         wxLogError(_("Couldn't open audio: ") + wxString(SDL_GetError(), wxConvISO8859_1));
         soundButton->Disable();
+        m_audio_opened = false;
+    }
+    else {
+        m_audio_opened = true;
     }
     soundButton->SetValue(false);
 
@@ -105,7 +110,8 @@ WMain::~WMain()
 {
     AbortAlgorithm();
 
-    SDL_CloseAudio();
+    if (m_audio_opened)
+        SDL_CloseAudio();
 }
 
 BEGIN_EVENT_TABLE(WMain, WMain_wxg)
@@ -152,10 +158,30 @@ bool WMain::RunAlgorithm()
         m_thread = new SortAlgoThread(this, *sortview, algoList->GetSelection());
 
         m_thread_terminate = false;
-        m_thread->Create();
+
+        wxThreadError te = m_thread->Create();
+        if (te != wxTHREAD_NO_ERROR)
+        {
+            wxLogError(_("Could not create algorithm thread (error %d)"), te);
+            delete m_thread;
+            m_thread = NULL;
+            g_algo_running = false;
+            runButton->SetValue(false);
+            return false;
+        }
 
         g_algo_running = true;
-        m_thread->Run();
+
+        te = m_thread->Run();
+        if (te != wxTHREAD_NO_ERROR)
+        {
+            wxLogError(_("Could not start algorithm thread (error %d)"), te);
+            delete m_thread;
+            m_thread = NULL;
+            g_algo_running = false;
+            runButton->SetValue(false);
+            return false;
+        }
 
         runButton->SetValue(true);
         return true;
@@ -193,7 +219,7 @@ void WMain::OnRunButton(wxCommandEvent &event)
     {
         if (!m_thread)
         {
-            RunAlgorithm();
+            if (!RunAlgorithm()) return;
         }
         else
         {
@@ -259,6 +285,14 @@ void WMain::OnStepButton(wxCommandEvent&)
 
 void WMain::OnSoundButton(wxCommandEvent&)
 {
+    if (!m_audio_opened)
+    {
+        wxLogError(_("Sound is unavailable: audio device could not be opened"));
+        soundButton->SetValue(false);
+        g_sound_on = false;
+        return;
+    }
+
     if (soundButton->GetValue())
     {
         SoundReset();
@@ -279,9 +313,11 @@ void WMain::OnRandomButton(wxCommandEvent&)
     algoList->SetSelection( rand() % algoList->GetCount() );
     sortview->m_array.FillData( inputTypeChoice->GetSelection(), m_array_size );
 
-    RunAlgorithm();
+    bool started = RunAlgorithm();
 
     algoList->SetSelection(wxNOT_FOUND);
+
+    if (!started) runButton->SetValue(false);
 }
 
 class WAbout : public WAbout_wxg
@@ -406,7 +442,8 @@ void WMain::OnAlgoListDClick(wxCommandEvent&)
     }
 
     // start new one
-    RunAlgorithm();
+    if (!RunAlgorithm())
+        runButton->SetValue(false);
 }
 
 // ----------------------------------------------------------------------------

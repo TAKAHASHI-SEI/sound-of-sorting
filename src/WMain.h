@@ -101,6 +101,9 @@ public:
     /// true if the algorithm terminates
     bool        m_thread_terminate;
 
+    /// true if the SDL audio device was opened successfully
+    bool        m_audio_opened;
+
     /// array size selected for new run
     size_t      m_array_size;
 };

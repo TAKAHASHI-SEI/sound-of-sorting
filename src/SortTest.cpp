@@ -28,6 +28,8 @@
 #include "SortArray.h"
 #include "SortAlgo.h"
 
+#include <exception>
+
 double g_delay = 0;
 
 class SortTestApp : public wxAppConsole
@@ -120,14 +122,24 @@ int SortTestApp::OnRun()
                     array.SetCalcInversions(false);
 
                 wxStopWatch sw;
-                ae.func(array);
-                long millitime = sw.Time();
-
-                if (!array.CheckSorted()) {
-                    wxPrintf(_T("FAILED(%s) "), inputlist[inputi].c_str());
+                bool crashed = false;
+                try {
+                    ae.func(array);
+                }
+                catch (std::exception& e) {
+                    wxPrintf(_T("EXCEPTION(%s: %s) "),
+                             inputlist[inputi].c_str(),
+                             wxString(e.what(), wxConvUTF8).c_str());
+                    crashed = true;
                     all_good = false;
                 }
-                else if (!sortcheck.check(array)) {
+                long millitime = sw.Time();
+
+                // after an exception the array state is undefined, so the
+                // sortedness checks below would be meaningless
+                if (!crashed &&
+                    (!array.CheckSorted() || !sortcheck.check(array)))
+                {
                     wxPrintf(_T("FAILED(%s) "), inputlist[inputi].c_str());
                     all_good = false;
                 }
