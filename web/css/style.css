@@ -1,0 +1,109 @@
+:root {
+  --bg: #1c1c1c;
+  --fg: #e8e8e8;
+  --panel: #2a2a2a;
+  --border: #444;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0 auto;
+  padding: 16px;
+  max-width: 1000px;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: system-ui, "Helvetica Neue", sans-serif;
+}
+
+h1 {
+  margin: 0 0 12px;
+  font-size: 1.4rem;
+}
+
+h1 .subtitle {
+  color: #999;
+  font-size: 1rem;
+  font-weight: normal;
+}
+
+.settings,
+.controls,
+.status {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 20px;
+  align-items: center;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  background: var(--panel);
+}
+
+.settings {
+  border-radius: 4px 4px 0 0;
+}
+
+.settings label {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  font-size: 0.85rem;
+}
+
+.settings output {
+  min-width: 4.5em;
+  color: #9cf;
+  font-variant-numeric: tabular-nums;
+}
+
+.settings input[type="range"] {
+  width: 140px;
+}
+
+canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-inline: 1px solid var(--border);
+  background: #000;
+}
+
+.controls button {
+  padding: 6px 18px;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  background: #383838;
+  color: var(--fg);
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.controls button:hover:not(:disabled) {
+  background: #454545;
+}
+
+.controls button:disabled {
+  color: #777;
+  cursor: default;
+}
+
+.status {
+  border-radius: 0 0 4px 4px;
+  font-size: 0.85rem;
+}
+
+.status output {
+  color: #9cf;
+  font-variant-numeric: tabular-nums;
+}
+
+.credit {
+  color: #888;
+  font-size: 0.75rem;
+}
+
+.credit a {
+  color: #888;
+}

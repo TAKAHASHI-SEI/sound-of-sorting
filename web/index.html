@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Sound of Sorting (web)</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<h1>The Sound of Sorting <span class="subtitle">(web)</span></h1>
+
+<section class="settings" aria-label="設定">
+  <label>アルゴリズム
+    <select id="algorithm"></select>
+  </label>
+  <label>入力方式
+    <select id="inputType"></select>
+  </label>
+  <label>要素数 <output id="arraySizeValue">32</output>
+    <input id="arraySize" type="range" min="2" max="2048" value="32">
+  </label>
+  <label>速度 <output id="delayValue">-</output>
+    <input id="speed" type="range" min="0" max="2000" value="1000">
+  </label>
+</section>
+
+<canvas id="sortview" width="960" height="480" role="img"
+        aria-label="ソート対象配列の棒グラフ表示"></canvas>
+
+<section class="controls" aria-label="実行制御">
+  <button id="run" type="button">開始</button>
+  <button id="reset" type="button">リセット</button>
+  <button id="regenerate" type="button">再生成</button>
+</section>
+
+<section class="status">
+  <span>状態: <output id="statusText">待機中</output></span>
+  <span>比較: <output id="compareCount">0</output></span>
+  <span>アクセス: <output id="accessCount">0</output></span>
+</section>
+
+<p class="credit">
+  Original: <a href="http://panthema.net/2013/sound-of-sorting/">The Sound of Sorting</a>
+  by Timo Bingmann (GPLv3)
+</p>
+
+<script type="module" src="js/main.js"></script>
+</body>
+</html>
