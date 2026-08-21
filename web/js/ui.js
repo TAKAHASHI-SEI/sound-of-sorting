@@ -74,6 +74,8 @@ export function initUI({ onRun, onStep, onStop, onReset, onRegenerate }) {
 
   el.arraySize.addEventListener('input', () => {
     appState.arraySize = clampSize(Number(el.arraySize.value));
+    // Keep the slider thumb on the clamped size, not on the requested one.
+    el.arraySize.value = String(appState.arraySize);
     render();
   });
 
