@@ -16,16 +16,22 @@ python3 -m http.server 8000
 Then open <http://localhost:8000/>. In GitHub Codespaces, use the forwarded
 port 8000 URL.
 
-## Current state (Phase 1)
+## Current state (Phase 2)
 
 - Array generation (all 6 input templates of the original)
-- Canvas bar graph visualization with access/mark colors
-- Bubble Sort, ported as a generator that yields operation events
-- Start / Reset / Regenerate, array size and animation speed
+- Canvas bar graph visualization with access/mark/watch colors
+- 27 of the original's algorithms, ported as generators that yield operation
+  events
+- Quick Sort pivot selection (first / last / middle / random / median of three)
+- Start / Pause / Resume / Step / Stop / Reset / Regenerate
+- Array size (limited per algorithm, as `AlgoEntry::max_testsize` does) and
+  animation speed
 - Comparison and array access counters
 
-Animation, pause/stop, the remaining algorithms and the sound (Web Audio API)
-follow in Phase 2 and 3 — see the design document.
+Not ported: `std::sort`, `std::stable_sort` and `std::sort_heap`, which depend
+on the original's iterator instrumentation, plus Tim Sort and Block Merge Sort
+(WikiSort). The sound (Web Audio API) follows in Phase 3 — see the design
+document.
 
 ## Layout
 

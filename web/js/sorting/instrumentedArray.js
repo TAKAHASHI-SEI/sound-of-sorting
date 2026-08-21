@@ -2,14 +2,25 @@
 // algorithm performs goes through this object and yields an operation event.
 // The animation controller consumes the events for drawing, statistics and
 // (from Phase 3 on) sound.
+//
+// Accesses are generators because they cost time and sound in the original;
+// colors (mark/watch) are plain methods because they cost neither there.
 
 export class InstrumentedArray {
-  constructor(values) {
+  constructor(values, { marks = new Map(), watches = new Map() } = {}) {
     this.values = values;
+    this.marks = marks;
+    this.watches = watches;
   }
 
   get size() {
     return this.values.length;
+  }
+
+  /// Largest value in the array (SortArray::array_max), used by radix sorts.
+  get arrayMax() {
+    if (this.max === undefined) this.max = Math.max(1, ...this.values);
+    return this.max;
   }
 
   /// Read without counting, sound or delay (SortArray::direct).
@@ -50,23 +61,32 @@ export class InstrumentedArray {
     return (yield* this.compare(i, j)) > 0;
   }
 
-  *mark(i, color = 2) {
-    yield { type: 'mark', index: i, color };
+  mark(i, color = 2) {
+    this.marks.set(i, color);
   }
 
-  *unmark(i) {
-    yield { type: 'unmark', index: i };
+  markSwap(i, j) {
+    const mi = this.marks.get(i) ?? 0;
+    const mj = this.marks.get(j) ?? 0;
+    this.mark(i, mj);
+    this.mark(j, mi);
   }
 
-  *unmarkAll() {
-    yield { type: 'unmarkAll' };
+  unmark(i) {
+    this.marks.delete(i);
   }
 
-  *watch(index, color = 3) {
-    yield { type: 'watch', index, color };
+  unmarkAll() {
+    this.marks.clear();
   }
 
-  *unwatchAll() {
-    yield { type: 'unwatchAll' };
+  /// Track a named index cursor (SortArray::watch on a volatile variable). The
+  /// getter replaces the pointer the original reads while painting.
+  watch(slot, getIndex, color = 3) {
+    this.watches.set(slot, { getIndex, color });
+  }
+
+  unwatchAll() {
+    this.watches.clear();
   }
 }

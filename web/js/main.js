@@ -26,9 +26,7 @@ function onReset() {
   render();
 }
 
-async function onRun() {
-  if (appState.status === STATUS.RUNNING) return;
-
+async function startRun(options) {
   // The original regenerates the data when a sorted array is run again.
   if (isSorted(appState.values)) regenerateArray();
 
@@ -36,11 +34,28 @@ async function onRun() {
   clearHighlights();
   resetStats();
 
-  await controller.run(findAlgorithm(appState.algorithmId));
+  await controller.run(findAlgorithm(appState.algorithmId), options);
   render();
 }
 
-initUI({ onRun, onReset, onRegenerate });
+/// Run / pause / resume toggle, as in the original's run button.
+function onRun() {
+  if (appState.status === STATUS.RUNNING) controller.pause();
+  else if (appState.status === STATUS.PAUSED) controller.resume();
+  else startRun();
+}
+
+function onStep() {
+  if (appState.status === STATUS.PAUSED) controller.step();
+  else if (appState.status !== STATUS.RUNNING) startRun({ step: true });
+}
+
+function onStop() {
+  controller.stop();
+  render();
+}
+
+initUI({ onRun, onStep, onStop, onReset, onRegenerate });
 regenerateArray();
 controller.startRendering();
 render();
