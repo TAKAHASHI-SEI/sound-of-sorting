@@ -111,6 +111,7 @@ export class AnimationController {
         if (performance.now() - batchStart >= BATCH_BUDGET_MS) break;
       }
 
+      this.onUpdate();
       if (finished) break;
 
       const elapsed = performance.now() - batchStart;
