@@ -180,10 +180,10 @@ void WSortView::paint(wxDC& dc, const wxSize& dcsize)
     if ( fabs(wbar - 1.0) < 0.1 && fabs(bstep - 2.0) < 0.1 ) wbar = 2, bstep = 2;
 
     static const wxColour colors[] = {
-        wxColour(255,255,255),        //  0 white
-        wxColour(255,0,0),            //  1 red
-        wxColour(0,255,0),            //  2 green
-        wxColour(0,255,255),          //  3 cyan
+        wxColour(255,255,255),         //  0 white
+        wxColour(255,0,0),             //  1 red
+        wxColour(0,255,0),             //  2 green
+        wxColour(0,255,255),           //  3 cyan
         wxColour(255,255,0),           //  4 yellow
         wxColour(255,0,255),           //  5 magenta
         wxColour(255,192,128),         //  6 orange
@@ -199,21 +199,19 @@ void WSortView::paint(wxDC& dc, const wxSize& dcsize)
         wxColour(0,128,255),           // 16 blue/cyan mix
     };
 
-    static const wxPen pens[] = {
-        wxPen(colors[0]), wxPen(colors[1]), wxPen(colors[2]), wxPen(colors[3]),
-        wxPen(colors[4]), wxPen(colors[5]), wxPen(colors[6]), wxPen(colors[7]),
-        wxPen(colors[8]), wxPen(colors[9]), wxPen(colors[10]), wxPen(colors[11]),
-        wxPen(colors[12]), wxPen(colors[13]), wxPen(colors[14]), wxPen(colors[15]),
-        wxPen(colors[16])
-    };
-
-    static const wxBrush brushes[] = {
-        wxBrush(colors[0]), wxBrush(colors[1]), wxBrush(colors[2]), wxBrush(colors[3]),
-        wxBrush(colors[4]), wxBrush(colors[5]), wxBrush(colors[6]), wxBrush(colors[7]),
-        wxBrush(colors[8]), wxBrush(colors[9]), wxBrush(colors[10]), wxBrush(colors[11]),
-        wxBrush(colors[12]), wxBrush(colors[13]), wxBrush(colors[14]), wxBrush(colors[15]),
-        wxBrush(colors[16])
-    };
+    static std::vector<wxPen> pens;
+    static std::vector<wxBrush> brushes;
+    static bool initialized = false;
+    if (!initialized)
+    {
+        const size_t color_count = sizeof(colors) / sizeof(colors[0]);
+        for (size_t i = 0; i < color_count; ++i)
+        {
+            pens.push_back(wxPen(colors[i]));
+            brushes.push_back(wxBrush(colors[i]));
+        }
+        initialized = true;
+    }
 
     wxMutexLocker lock(m_array.m_mutex);
     ASSERT(lock.IsOk());
