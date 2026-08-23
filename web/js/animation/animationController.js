@@ -27,6 +27,10 @@ export class AnimationController {
     this.onUpdate = onUpdate ?? (() => {});
     this.runId = 0;
     this.rendering = false;
+    this.paused = false;
+    /// Set to execute a single operation and pause again (WMain::OnStepButton).
+    this.stepping = false;
+    this.resumeGate = null;
   }
 
   /// Continuously repaint the current array state, decoupled from the algorithm.
@@ -78,23 +82,41 @@ export class AnimationController {
     }
   }
 
-  /// Port of SortArray::GetIndexColor: access beats mark beats normal.
+  /// Port of SortArray::GetIndexColor: access, then watch, then mark.
   indexColor(index) {
     if (appState.access.includes(index)) return 1;
+    for (const watch of appState.watches.values()) {
+      if (watch.getIndex() === index) return watch.color;
+    }
     return appState.marks.get(index) ?? 0;
   }
 
   /// Run one algorithm to completion, returning when it finished or was stopped.
-  async run(algorithm) {
+  /// With `step: true` the run pauses after its first operation.
+  async run(algorithm, { step = false } = {}) {
     const runId = ++this.runId;
-    const array = new InstrumentedArray(appState.values);
+    const array = new InstrumentedArray(appState.values, {
+      marks: appState.marks,
+      watches: appState.watches,
+    });
     const events = algorithm.run(array);
 
+    this.paused = false;
+    this.stepping = step;
     appState.status = STATUS.RUNNING;
     appState.message = '';
     this.onUpdate();
 
     while (this.runId === runId) {
+      if (this.paused) {
+        appState.status = STATUS.PAUSED;
+        this.onUpdate();
+        await this.waitForResume();
+        if (this.runId !== runId) return false;
+        appState.status = STATUS.RUNNING;
+        this.onUpdate();
+      }
+
       const batchStart = performance.now();
       let owedDelay = 0;
       let finished = false;
@@ -107,12 +129,22 @@ export class AnimationController {
         }
         this.applyEvent(value);
         owedDelay += appState.delayMs * accessCount(value);
+        if (this.stepping) {
+          this.stepping = false;
+          this.paused = true;
+          break;
+        }
         if (owedDelay >= FRAME_MS) break;
         if (performance.now() - batchStart >= BATCH_BUDGET_MS) break;
       }
 
       this.onUpdate();
       if (finished) break;
+      if (this.paused) {
+        // Show the stepped operation before blocking on the pause gate.
+        await nextFrame();
+        continue;
+      }
 
       const elapsed = performance.now() - batchStart;
       if (owedDelay - elapsed >= 1) {
@@ -125,9 +157,11 @@ export class AnimationController {
     if (this.runId !== runId) return false;
 
     appState.access = [];
+    appState.watches.clear();
     // Verification step of SortArray::CheckSorted.
     if (isSorted(appState.values)) {
       appState.status = STATUS.COMPLETED;
+      appState.marks.clear();
       for (let i = 0; i < appState.values.length; ++i) appState.marks.set(i, 2);
     } else {
       appState.status = STATUS.ERROR;
@@ -137,9 +171,50 @@ export class AnimationController {
     return true;
   }
 
+  get running() {
+    return appState.status === STATUS.RUNNING || appState.status === STATUS.PAUSED;
+  }
+
+  pause() {
+    if (appState.status !== STATUS.RUNNING) return;
+    this.paused = true;
+  }
+
+  resume() {
+    if (appState.status !== STATUS.PAUSED) return;
+    this.paused = false;
+    this.openResumeGate();
+  }
+
+  /// Execute exactly one more operation of a paused run.
+  step() {
+    if (appState.status !== STATUS.PAUSED) return;
+    this.stepping = true;
+    this.paused = false;
+    this.openResumeGate();
+  }
+
+  /// Cancel the run and keep the array as it is.
   stop() {
+    const wasRunning = this.running;
     ++this.runId;
+    this.paused = false;
+    this.stepping = false;
+    this.openResumeGate();
     appState.access = [];
+    if (wasRunning) appState.status = STATUS.STOPPED;
+  }
+
+  waitForResume() {
+    return new Promise((resolve) => {
+      this.resumeGate = resolve;
+    });
+  }
+
+  openResumeGate() {
+    const gate = this.resumeGate;
+    this.resumeGate = null;
+    if (gate) gate();
   }
 
   applyEvent(event) {
@@ -159,15 +234,6 @@ export class AnimationController {
       case 'set':
         stats.accesses += 1;
         appState.access = [event.index];
-        break;
-      case 'mark':
-        appState.marks.set(event.index, event.color);
-        break;
-      case 'unmark':
-        appState.marks.delete(event.index);
-        break;
-      case 'unmarkAll':
-        appState.marks.clear();
         break;
       default:
         break;

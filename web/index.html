@@ -16,6 +16,9 @@
   <label>入力方式
     <select id="inputType"></select>
   </label>
+  <label>ピボット
+    <select id="pivot"></select>
+  </label>
   <label>要素数 <output id="arraySizeValue">32</output>
     <input id="arraySize" type="range" min="2" max="2048" value="32">
   </label>
@@ -24,11 +27,15 @@
   </label>
 </section>
 
+<p class="description" id="algorithmDescription"></p>
+
 <canvas id="sortview" width="960" height="480" role="img"
         aria-label="ソート対象配列の棒グラフ表示"></canvas>
 
 <section class="controls" aria-label="実行制御">
   <button id="run" type="button">開始</button>
+  <button id="step" type="button">ステップ</button>
+  <button id="stop" type="button">停止</button>
   <button id="reset" type="button">リセット</button>
   <button id="regenerate" type="button">再生成</button>
 </section>

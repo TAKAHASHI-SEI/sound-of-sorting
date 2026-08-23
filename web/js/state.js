@@ -32,6 +32,8 @@ export const appState = {
   arrayMax: 1,
   /// index -> palette color, set by the algorithm (SortArray::mark)
   marks: new Map(),
+  /// slot name -> { index, color }, the algorithm's index cursors (SortArray::watch)
+  watches: new Map(),
   /// indices touched by the current operation (SortArray::m_access1/2)
   access: [],
   stats: { compares: 0, accesses: 0 },
@@ -63,6 +65,7 @@ export function resetStats() {
 
 export function clearHighlights() {
   appState.marks.clear();
+  appState.watches.clear();
   appState.access = [];
 }
 
