@@ -27,6 +27,29 @@ port 8000 URL.
 Animation, pause/stop, the remaining algorithms and the sound (Web Audio API)
 follow in Phase 2 and 3 — see the design document.
 
+## Porting scope
+
+- Original desktop version: 32 algorithms listed in the UI
+- Planned Web port target: 29 algorithms
+- Excluded from the Web target: `std::sort`, `std::stable_sort`,
+  `std::sort_heap` (runtime/library dependent and not directly instrumentable in
+  the same way)
+- Implemented in the current Web version: 1 algorithm (`Bubble Sort`)
+
+The detailed list, priorities and the source-to-web mapping are documented in
+[`docs/design.md`](../docs/design.md), especially sections 17 to 20.
+
+## Sound plan
+
+The original project generates sound from accessed / compared **values**, not
+from indexes. The Web version keeps the same design direction:
+
+- sorting algorithms emit operation events through `InstrumentedArray`
+- the animation controller consumes those events for drawing and counters
+- Web Audio API sound output is planned as Phase 3
+
+The target behavior is documented in the design document's sound section.
+
 ## Layout
 
 | Path | Contents |
