@@ -27,6 +27,8 @@ export const appState = {
   inputTypeId: 'random',
   arraySize: 32,
   delayMs: 0,
+  soundEnabled: false,
+  volume: 0.5,
   values: [],
   originalValues: [],
   arrayMax: 1,
@@ -49,6 +51,15 @@ export function formatDelay(delayMs) {
   if (delayMs > 10) return `${delayMs.toFixed(0)} ms`;
   if (delayMs > 1) return `${delayMs.toFixed(1)} ms`;
   return `${delayMs.toFixed(2)} ms`;
+}
+
+export function volumeFromSlider(pos) {
+  if (!Number.isFinite(pos)) return appState.volume;
+  return Math.min(1, Math.max(0, pos / 100));
+}
+
+export function formatVolume(volume) {
+  return `${Math.round(volume * 100)}%`;
 }
 
 export function clampArraySize(size) {

@@ -1,4 +1,5 @@
 import { AnimationController } from './animation/animationController.js';
+import { AudioController } from './audio/audioController.js';
 import { findAlgorithm } from './sorting/index.js';
 import {
   appState,
@@ -12,16 +13,19 @@ import { initUI, render } from './ui.js';
 import { isSorted } from './utils/arrayUtils.js';
 
 const canvas = document.getElementById('sortview');
-const controller = new AnimationController(canvas, { onUpdate: render });
+const audio = new AudioController();
+const controller = new AnimationController(canvas, { onUpdate: render, audioController: audio });
 
 function onRegenerate() {
   controller.stop();
+  audio.stopAll();
   regenerateArray();
   render();
 }
 
 function onReset() {
   controller.stop();
+  audio.stopAll();
   restoreArray();
   render();
 }
@@ -38,11 +42,37 @@ function onPause() {
 
 function onStop() {
   controller.stop();
+  audio.stopAll();
   render();
+}
+
+async function onSoundToggle(enabled) {
+  if (!enabled) {
+    audio.stopAll();
+    return;
+  }
+
+  try {
+    await audio.enableFromGesture();
+  } catch (error) {
+    appState.soundEnabled = false;
+    appState.message = error instanceof Error ? error.message : '音声の初期化に失敗しました';
+  }
+}
+
+function onVolumeChange(volume) {
+  audio.setVolume(volume);
 }
 
 async function onRun() {
   if (appState.status === STATUS.RUNNING || appState.status === STATUS.PAUSED) return;
+
+  try {
+    await audio.enableFromGesture();
+  } catch (error) {
+    appState.soundEnabled = false;
+    appState.message = error instanceof Error ? error.message : '音声の初期化に失敗しました';
+  }
 
   // The original regenerates the data when a sorted array is run again.
   if (isSorted(appState.values)) regenerateArray();
@@ -55,7 +85,7 @@ async function onRun() {
   render();
 }
 
-initUI({ onRun, onPause, onStop, onReset, onRegenerate });
+initUI({ onRun, onPause, onStop, onReset, onRegenerate, onSoundToggle, onVolumeChange });
 regenerateArray();
 controller.startRendering();
 render();

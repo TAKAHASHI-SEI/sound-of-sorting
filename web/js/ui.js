@@ -3,8 +3,10 @@ import {
   clampArraySize,
   delayFromSlider,
   formatDelay,
+  formatVolume,
   STATUS,
   STATUS_LABEL,
+  volumeFromSlider,
 } from './state.js';
 import { ALGORITHMS } from './sorting/index.js';
 import { INPUT_TYPES } from './utils/arrayUtils.js';
@@ -16,6 +18,9 @@ const el = {
   arraySizeValue: document.getElementById('arraySizeValue'),
   speed: document.getElementById('speed'),
   delayValue: document.getElementById('delayValue'),
+  soundEnabled: document.getElementById('soundEnabled'),
+  volume: document.getElementById('volume'),
+  volumeValue: document.getElementById('volumeValue'),
   run: document.getElementById('run'),
   pause: document.getElementById('pause'),
   stop: document.getElementById('stop'),
@@ -35,7 +40,15 @@ function fillSelect(select, items) {
   }
 }
 
-export function initUI({ onRun, onPause, onStop, onReset, onRegenerate }) {
+export function initUI({
+  onRun,
+  onPause,
+  onStop,
+  onReset,
+  onRegenerate,
+  onSoundToggle,
+  onVolumeChange,
+}) {
   fillSelect(el.algorithm, ALGORITHMS);
   fillSelect(el.inputType, INPUT_TYPES);
 
@@ -46,6 +59,8 @@ export function initUI({ onRun, onPause, onStop, onReset, onRegenerate }) {
 
   appState.arraySize = clampArraySize(Number(el.arraySize.value));
   appState.delayMs = delayFromSlider(Number(el.speed.value));
+  appState.soundEnabled = el.soundEnabled.checked;
+  appState.volume = volumeFromSlider(Number(el.volume.value));
 
   el.algorithm.addEventListener('change', () => {
     appState.algorithmId = el.algorithm.value;
@@ -70,6 +85,18 @@ export function initUI({ onRun, onPause, onStop, onReset, onRegenerate }) {
     render();
   });
 
+  el.soundEnabled.addEventListener('change', async () => {
+    appState.soundEnabled = el.soundEnabled.checked;
+    if (onSoundToggle) await onSoundToggle(appState.soundEnabled);
+    render();
+  });
+
+  el.volume.addEventListener('input', () => {
+    appState.volume = volumeFromSlider(Number(el.volume.value));
+    if (onVolumeChange) onVolumeChange(appState.volume);
+    render();
+  });
+
   el.run.addEventListener('click', onRun);
   el.pause.addEventListener('click', onPause);
   el.stop.addEventListener('click', onStop);
@@ -86,6 +113,9 @@ export function render() {
 
   el.arraySizeValue.value = String(appState.arraySize);
   el.delayValue.value = formatDelay(appState.delayMs);
+  el.soundEnabled.checked = appState.soundEnabled;
+  el.volume.value = String(Math.round(appState.volume * 100));
+  el.volumeValue.value = formatVolume(appState.volume);
   el.statusText.value = appState.message || STATUS_LABEL[appState.status];
   el.compareCount.value = String(appState.stats.compares);
   el.accessCount.value = String(appState.stats.accesses);
@@ -98,4 +128,5 @@ export function render() {
   el.algorithm.disabled = busy;
   el.inputType.disabled = busy;
   el.arraySize.disabled = busy;
+  el.volume.disabled = !appState.soundEnabled;
 }

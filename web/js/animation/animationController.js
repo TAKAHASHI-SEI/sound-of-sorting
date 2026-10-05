@@ -21,10 +21,11 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const nextFrame = () => new Promise((resolve) => requestAnimationFrame(() => resolve()));
 
 export class AnimationController {
-  constructor(canvas, { onUpdate } = {}) {
+  constructor(canvas, { onUpdate, audioController } = {}) {
     this.canvas = canvas;
     this.ctx = canvas.getContext('2d');
     this.onUpdate = onUpdate ?? (() => {});
+    this.audioController = audioController ?? null;
     this.runId = 0;
     this.activeRun = null;
     this.rendering = false;
@@ -112,6 +113,7 @@ export class AnimationController {
         if (run.paused) {
           appState.status = STATUS.PAUSED;
           appState.access = [];
+          this.audioController?.stopAll();
           this.onUpdate();
           return false;
         }
@@ -154,6 +156,7 @@ export class AnimationController {
         appState.status = STATUS.ERROR;
         appState.message = 'ソート結果が正しくありません';
       }
+      this.audioController?.stopAll();
       this.activeRun = null;
       this.onUpdate();
       return true;
@@ -184,6 +187,7 @@ export class AnimationController {
     appState.access = [];
     appState.status = STATUS.STOPPED;
     appState.message = '';
+    this.audioController?.stopAll();
     this.onUpdate();
   }
 
@@ -195,15 +199,18 @@ export class AnimationController {
         stats.compares += 1;
         stats.accesses += event.indices.length;
         appState.access = event.indices;
+        this.audioController?.handleEvent(event);
         break;
       case 'get':
       case 'swap':
         stats.accesses += event.indices.length;
         appState.access = event.indices;
+        this.audioController?.handleEvent(event);
         break;
       case 'set':
         stats.accesses += 1;
         appState.access = [event.index];
+        this.audioController?.handleEvent(event);
         break;
       case 'mark':
         appState.marks.set(event.index, event.color);
