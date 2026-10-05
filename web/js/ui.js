@@ -17,6 +17,8 @@ const el = {
   speed: document.getElementById('speed'),
   delayValue: document.getElementById('delayValue'),
   run: document.getElementById('run'),
+  pause: document.getElementById('pause'),
+  stop: document.getElementById('stop'),
   reset: document.getElementById('reset'),
   regenerate: document.getElementById('regenerate'),
   statusText: document.getElementById('statusText'),
@@ -33,7 +35,7 @@ function fillSelect(select, items) {
   }
 }
 
-export function initUI({ onRun, onReset, onRegenerate }) {
+export function initUI({ onRun, onPause, onStop, onReset, onRegenerate }) {
   fillSelect(el.algorithm, ALGORITHMS);
   fillSelect(el.inputType, INPUT_TYPES);
 
@@ -69,6 +71,8 @@ export function initUI({ onRun, onReset, onRegenerate }) {
   });
 
   el.run.addEventListener('click', onRun);
+  el.pause.addEventListener('click', onPause);
+  el.stop.addEventListener('click', onStop);
   el.reset.addEventListener('click', onReset);
   el.regenerate.addEventListener('click', onRegenerate);
 
@@ -77,6 +81,8 @@ export function initUI({ onRun, onReset, onRegenerate }) {
 
 export function render() {
   const running = appState.status === STATUS.RUNNING;
+  const paused = appState.status === STATUS.PAUSED;
+  const busy = running || paused;
 
   el.arraySizeValue.value = String(appState.arraySize);
   el.delayValue.value = formatDelay(appState.delayMs);
@@ -84,9 +90,12 @@ export function render() {
   el.compareCount.value = String(appState.stats.compares);
   el.accessCount.value = String(appState.stats.accesses);
 
-  el.run.disabled = running;
-  el.run.textContent = running ? '実行中' : '開始';
-  el.algorithm.disabled = running;
-  el.inputType.disabled = running;
-  el.arraySize.disabled = running;
+  el.run.disabled = busy;
+  el.run.textContent = '開始';
+  el.pause.disabled = !busy;
+  el.pause.textContent = paused ? '再開' : '一時停止';
+  el.stop.disabled = !busy;
+  el.algorithm.disabled = busy;
+  el.inputType.disabled = busy;
+  el.arraySize.disabled = busy;
 }

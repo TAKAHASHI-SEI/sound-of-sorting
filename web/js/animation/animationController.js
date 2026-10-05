@@ -26,6 +26,7 @@ export class AnimationController {
     this.ctx = canvas.getContext('2d');
     this.onUpdate = onUpdate ?? (() => {});
     this.runId = 0;
+    this.activeRun = null;
     this.rendering = false;
   }
 
@@ -86,60 +87,104 @@ export class AnimationController {
 
   /// Run one algorithm to completion, returning when it finished or was stopped.
   async run(algorithm) {
-    const runId = ++this.runId;
-    const array = new InstrumentedArray(appState.values);
-    const events = algorithm.run(array);
+    if (this.activeRun) return false;
+
+    const run = {
+      runId: ++this.runId,
+      events: algorithm.run(new InstrumentedArray(appState.values)),
+      paused: false,
+      processing: false,
+    };
+    this.activeRun = run;
 
     appState.status = STATUS.RUNNING;
     appState.message = '';
     this.onUpdate();
+    return this.process(run);
+  }
 
-    while (this.runId === runId) {
-      const batchStart = performance.now();
-      let owedDelay = 0;
-      let finished = false;
+  async process(run) {
+    if (run.processing) return false;
+    run.processing = true;
 
-      while (true) {
-        const { done, value } = events.next();
-        if (done) {
-          finished = true;
-          break;
+    try {
+      while (this.activeRun === run) {
+        if (run.paused) {
+          appState.status = STATUS.PAUSED;
+          appState.access = [];
+          this.onUpdate();
+          return false;
         }
-        this.applyEvent(value);
-        owedDelay += appState.delayMs * accessCount(value);
-        if (owedDelay >= FRAME_MS) break;
-        if (performance.now() - batchStart >= BATCH_BUDGET_MS) break;
+
+        const batchStart = performance.now();
+        let owedDelay = 0;
+        let finished = false;
+
+        while (true) {
+          const { done, value } = run.events.next();
+          if (done) {
+            finished = true;
+            break;
+          }
+          this.applyEvent(value);
+          owedDelay += appState.delayMs * accessCount(value);
+          if (owedDelay >= FRAME_MS) break;
+          if (performance.now() - batchStart >= BATCH_BUDGET_MS) break;
+        }
+
+        this.onUpdate();
+        if (finished) break;
+
+        const elapsed = performance.now() - batchStart;
+        if (owedDelay - elapsed >= 1) {
+          await sleep(owedDelay - elapsed);
+        } else {
+          await nextFrame();
+        }
       }
 
-      this.onUpdate();
-      if (finished) break;
+      if (this.activeRun !== run) return false;
 
-      const elapsed = performance.now() - batchStart;
-      if (owedDelay - elapsed >= 1) {
-        await sleep(owedDelay - elapsed);
+      appState.access = [];
+      // Verification step of SortArray::CheckSorted.
+      if (isSorted(appState.values)) {
+        appState.status = STATUS.COMPLETED;
+        for (let i = 0; i < appState.values.length; ++i) appState.marks.set(i, 2);
       } else {
-        await nextFrame();
+        appState.status = STATUS.ERROR;
+        appState.message = 'ソート結果が正しくありません';
+      }
+      this.activeRun = null;
+      this.onUpdate();
+      return true;
+    } finally {
+      if (this.activeRun === run) {
+        run.processing = false;
       }
     }
+  }
 
-    if (this.runId !== runId) return false;
+  pause() {
+    if (!this.activeRun || this.activeRun.paused) return;
+    this.activeRun.paused = true;
+  }
 
-    appState.access = [];
-    // Verification step of SortArray::CheckSorted.
-    if (isSorted(appState.values)) {
-      appState.status = STATUS.COMPLETED;
-      for (let i = 0; i < appState.values.length; ++i) appState.marks.set(i, 2);
-    } else {
-      appState.status = STATUS.ERROR;
-      appState.message = 'ソート結果が正しくありません';
-    }
+  resume() {
+    if (!this.activeRun || !this.activeRun.paused) return false;
+    this.activeRun.paused = false;
+    appState.status = STATUS.RUNNING;
     this.onUpdate();
+    void this.process(this.activeRun);
     return true;
   }
 
   stop() {
     ++this.runId;
+    this.activeRun = null;
     appState.access = [];
+    appState.status = STATUS.STOPPED;
+    appState.message = '';
+    this.onUpdate();
   }
 
   applyEvent(event) {

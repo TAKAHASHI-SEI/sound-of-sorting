@@ -26,8 +26,23 @@ function onReset() {
   render();
 }
 
+function onPause() {
+  if (appState.status === STATUS.RUNNING) {
+    controller.pause();
+    return;
+  }
+  if (appState.status === STATUS.PAUSED) {
+    controller.resume();
+  }
+}
+
+function onStop() {
+  controller.stop();
+  render();
+}
+
 async function onRun() {
-  if (appState.status === STATUS.RUNNING) return;
+  if (appState.status === STATUS.RUNNING || appState.status === STATUS.PAUSED) return;
 
   // The original regenerates the data when a sorted array is run again.
   if (isSorted(appState.values)) regenerateArray();
@@ -40,7 +55,7 @@ async function onRun() {
   render();
 }
 
-initUI({ onRun, onReset, onRegenerate });
+initUI({ onRun, onPause, onStop, onReset, onRegenerate });
 regenerateArray();
 controller.startRendering();
 render();
