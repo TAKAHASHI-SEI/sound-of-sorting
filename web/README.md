@@ -21,7 +21,8 @@ port 8000 URL.
 - Array generation (all 6 input templates of the original)
 - Canvas bar graph visualization with access/mark colors
 - Bubble Sort, Selection Sort, Insertion Sort, Cocktail Shaker Sort, Gnome Sort,
-  Comb Sort and Odd-Even Sort, ported as generators that yield operation events
+  Comb Sort, Odd-Even Sort, Shell Sort and Heap Sort, ported as generators that
+  yield operation events
 - Start / Pause / Resume / Stop / Reset / Regenerate, array size and animation
   speed
 - Comparison and array access counters
@@ -38,9 +39,9 @@ the advanced statistics follow later — see the design document.
 - Excluded from the Web target: `std::sort`, `std::stable_sort`,
   `std::sort_heap` (runtime/library dependent and not directly instrumentable in
   the same way)
-- Implemented in the current Web version: 7 algorithms (`Bubble Sort`,
+- Implemented in the current Web version: 9 algorithms (`Bubble Sort`,
   `Selection Sort`, `Insertion Sort`, `Cocktail Shaker Sort`, `Gnome Sort`,
-  `Comb Sort`, `Odd-Even Sort`)
+  `Comb Sort`, `Odd-Even Sort`, `Shell Sort`, `Heap Sort`)
 
 The detailed list, priorities and the source-to-web mapping are documented in
 [`docs/design.md`](../docs/design.md), especially sections 17 to 20.

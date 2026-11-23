@@ -5,9 +5,11 @@ import { bubbleSort } from './bubbleSort.js';
 import { cocktailShakerSort } from './cocktailShakerSort.js';
 import { combSort } from './combSort.js';
 import { gnomeSort } from './gnomeSort.js';
+import { heapSort } from './heapSort.js';
 import { insertionSort } from './insertionSort.js';
 import { oddEvenSort } from './oddEvenSort.js';
 import { selectionSort } from './selectionSort.js';
+import { shellSort } from './shellSort.js';
 
 export const ALGORITHMS = [
   {
@@ -56,6 +58,20 @@ export const ALGORITHMS = [
     id: 'oddeven',
     name: 'Odd-Even Sort',
     run: oddEvenSort,
+    maxSize: Infinity,
+    description: '',
+  },
+  {
+    id: 'shell',
+    name: 'Shell Sort',
+    run: shellSort,
+    maxSize: Infinity,
+    description: '',
+  },
+  {
+    id: 'heap',
+    name: 'Heap Sort',
+    run: heapSort,
     maxSize: Infinity,
     description: '',
   },
