@@ -29,6 +29,8 @@ export const appState = {
   delayMs: 0,
   soundEnabled: false,
   volume: 0.5,
+  /// Port of g_sound_sustain: sound length as a multiple of the delay.
+  soundSustain: 1,
   values: [],
   originalValues: [],
   arrayMax: 1,
@@ -60,6 +62,18 @@ export function volumeFromSlider(pos) {
 
 export function formatVolume(volume) {
   return `${Math.round(volume * 100)}%`;
+}
+
+/// Port of WMain::SetSoundSustain: exponential slider scale up to 50x.
+export function sustainFromSlider(pos) {
+  if (!Number.isFinite(pos)) return appState.soundSustain;
+  const base = 4;
+  const clamped = Math.min(2000, Math.max(0, pos));
+  return Math.pow(base, (clamped / 2000) * Math.log(50) / Math.log(base));
+}
+
+export function formatSustain(sustain) {
+  return sustain.toFixed(1);
 }
 
 export function clampArraySize(size) {

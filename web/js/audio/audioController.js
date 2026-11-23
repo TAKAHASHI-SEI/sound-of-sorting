@@ -99,7 +99,9 @@ export class AudioController {
     const max = Math.max(1, appState.arrayMax);
     const relative = value / max;
     const frequency = BASE_FREQUENCY + FREQUENCY_SPAN * relative * relative;
-    const duration = Math.max(MIN_SOUND_SECONDS, (appState.delayMs / 1000) * 0.7);
+    // Original: sound length = g_delay / 1000 * g_sound_sustain seconds.
+    const sustain = Math.max(0, appState.soundSustain);
+    const duration = Math.max(MIN_SOUND_SECONDS, (appState.delayMs / 1000) * sustain);
     const now = context.currentTime;
 
     const oscillator = context.createOscillator();

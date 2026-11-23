@@ -26,11 +26,10 @@ port 8000 URL.
   speed
 - Comparison and array access counters
 - Web Audio API sound: value-based frequency, triangle wave and ADSR envelope,
-  plus sound on/off and volume controls
+  plus sound on/off, volume and sound sustain (length) controls
 
-Step execution, random run, Quick Sort pivot rules, the remaining algorithms,
-Sound Sustain and the advanced statistics follow later — see the design
-document.
+Step execution, random run, Quick Sort pivot rules, the remaining algorithms and
+the advanced statistics follow later — see the design document.
 
 ## Porting scope
 

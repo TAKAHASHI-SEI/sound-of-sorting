@@ -3,9 +3,11 @@ import {
   clampArraySize,
   delayFromSlider,
   formatDelay,
+  formatSustain,
   formatVolume,
   STATUS,
   STATUS_LABEL,
+  sustainFromSlider,
   volumeFromSlider,
 } from './state.js';
 import { ALGORITHMS } from './sorting/index.js';
@@ -21,6 +23,8 @@ const el = {
   soundEnabled: document.getElementById('soundEnabled'),
   volume: document.getElementById('volume'),
   volumeValue: document.getElementById('volumeValue'),
+  sustain: document.getElementById('sustain'),
+  sustainValue: document.getElementById('sustainValue'),
   run: document.getElementById('run'),
   pause: document.getElementById('pause'),
   stop: document.getElementById('stop'),
@@ -61,6 +65,7 @@ export function initUI({
   appState.delayMs = delayFromSlider(Number(el.speed.value));
   appState.soundEnabled = el.soundEnabled.checked;
   appState.volume = volumeFromSlider(Number(el.volume.value));
+  appState.soundSustain = sustainFromSlider(Number(el.sustain.value));
 
   el.algorithm.addEventListener('change', () => {
     appState.algorithmId = el.algorithm.value;
@@ -97,6 +102,11 @@ export function initUI({
     render();
   });
 
+  el.sustain.addEventListener('input', () => {
+    appState.soundSustain = sustainFromSlider(Number(el.sustain.value));
+    render();
+  });
+
   el.run.addEventListener('click', onRun);
   el.pause.addEventListener('click', onPause);
   el.stop.addEventListener('click', onStop);
@@ -116,6 +126,7 @@ export function render() {
   el.soundEnabled.checked = appState.soundEnabled;
   el.volume.value = String(Math.round(appState.volume * 100));
   el.volumeValue.value = formatVolume(appState.volume);
+  el.sustainValue.value = formatSustain(appState.soundSustain);
   el.statusText.value = appState.message || STATUS_LABEL[appState.status];
   el.compareCount.value = String(appState.stats.compares);
   el.accessCount.value = String(appState.stats.accesses);
@@ -129,4 +140,5 @@ export function render() {
   el.inputType.disabled = busy;
   el.arraySize.disabled = busy;
   el.volume.disabled = !appState.soundEnabled;
+  el.sustain.disabled = !appState.soundEnabled;
 }
