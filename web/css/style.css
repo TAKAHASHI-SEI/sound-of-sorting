@@ -62,6 +62,19 @@ h1 .subtitle {
   width: 140px;
 }
 
+.settings input[type="number"] {
+  width: 5em;
+  padding: 2px 4px;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  background: #1f1f1f;
+  color: var(--fg);
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
 canvas {
   display: block;
   width: 100%;

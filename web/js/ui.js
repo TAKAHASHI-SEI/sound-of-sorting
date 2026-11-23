@@ -20,7 +20,7 @@ const el = {
   pivot: document.getElementById('pivot'),
   inputType: document.getElementById('inputType'),
   arraySize: document.getElementById('arraySize'),
-  arraySizeValue: document.getElementById('arraySizeValue'),
+  arraySizeInput: document.getElementById('arraySizeInput'),
   speed: document.getElementById('speed'),
   delayValue: document.getElementById('delayValue'),
   soundEnabled: document.getElementById('soundEnabled'),
@@ -102,6 +102,12 @@ export function initUI({
     onRegenerate();
   });
 
+  // The element count can also be typed in; keep the slider in sync.
+  el.arraySizeInput.addEventListener('change', () => {
+    appState.arraySize = clampArraySize(Number(el.arraySizeInput.value));
+    onRegenerate();
+  });
+
   el.speed.addEventListener('input', () => {
     appState.delayMs = delayFromSlider(Number(el.speed.value));
     render();
@@ -150,7 +156,8 @@ export function render() {
   appState.inversionLimit = algorithm?.inversionCountLimit ?? Infinity;
   updateArrayStats();
 
-  el.arraySizeValue.value = String(appState.arraySize);
+  el.arraySize.value = String(appState.arraySize);
+  el.arraySizeInput.value = String(appState.arraySize);
   el.algorithm.value = appState.algorithmId;
   el.delayValue.value = formatDelay(appState.delayMs);
   el.soundEnabled.checked = appState.soundEnabled;
@@ -174,6 +181,7 @@ export function render() {
   el.pivot.disabled = busy || !algorithm?.usesPivot;
   el.inputType.disabled = busy;
   el.arraySize.disabled = busy;
+  el.arraySizeInput.disabled = busy;
   el.volume.disabled = !appState.soundEnabled;
   el.sustain.disabled = !appState.soundEnabled;
 }
