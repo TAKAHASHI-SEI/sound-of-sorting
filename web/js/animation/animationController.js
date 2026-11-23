@@ -80,9 +80,11 @@ export class AnimationController {
     }
   }
 
-  /// Port of SortArray::GetIndexColor: access beats mark beats normal.
+  /// Port of SortArray::GetIndexColor: access beats watch beats mark beats normal.
   indexColor(index) {
     if (appState.access.includes(index)) return 1;
+    const watched = appState.watches.get(index);
+    if (watched !== undefined) return watched;
     return appState.marks.get(index) ?? 0;
   }
 
@@ -92,7 +94,9 @@ export class AnimationController {
 
     const run = {
       runId: ++this.runId,
-      events: algorithm.run(new InstrumentedArray(appState.values)),
+      events: algorithm.run(new InstrumentedArray(appState.values), {
+        quicksortPivot: appState.quicksortPivot,
+      }),
       paused: false,
       processing: false,
     };
@@ -185,6 +189,7 @@ export class AnimationController {
     ++this.runId;
     this.activeRun = null;
     appState.access = [];
+    appState.watches.clear();
     appState.status = STATUS.STOPPED;
     appState.message = '';
     this.audioController?.stopAll();
@@ -214,6 +219,24 @@ export class AnimationController {
         break;
       case 'mark':
         appState.marks.set(event.index, event.color);
+        break;
+      case 'markSwap': {
+        const [i, j] = event.indices;
+        const left = appState.marks.get(i);
+        const right = appState.marks.get(j);
+        if (right === undefined) appState.marks.delete(i);
+        else appState.marks.set(i, right);
+        if (left === undefined) appState.marks.delete(j);
+        else appState.marks.set(j, left);
+        break;
+      }
+      case 'watch':
+        if (event.index >= 0 && event.index < appState.values.length) {
+          appState.watches.set(event.index, event.color);
+        }
+        break;
+      case 'unwatchAll':
+        appState.watches.clear();
         break;
       case 'unmark':
         appState.marks.delete(event.index);

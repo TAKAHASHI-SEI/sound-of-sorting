@@ -11,10 +11,12 @@ import {
   volumeFromSlider,
 } from './state.js';
 import { ALGORITHMS } from './sorting/index.js';
+import { QUICK_SORT_PIVOTS } from './sorting/quickSortPivot.js';
 import { INPUT_TYPES } from './utils/arrayUtils.js';
 
 const el = {
   algorithm: document.getElementById('algorithm'),
+  pivot: document.getElementById('pivot'),
   inputType: document.getElementById('inputType'),
   arraySize: document.getElementById('arraySize'),
   arraySizeValue: document.getElementById('arraySizeValue'),
@@ -54,11 +56,14 @@ export function initUI({
   onVolumeChange,
 }) {
   fillSelect(el.algorithm, ALGORITHMS);
+  fillSelect(el.pivot, QUICK_SORT_PIVOTS);
   fillSelect(el.inputType, INPUT_TYPES);
 
   appState.algorithmId = ALGORITHMS[0].id;
+  appState.quicksortPivot = QUICK_SORT_PIVOTS[0].id;
   appState.inputTypeId = INPUT_TYPES[0].id;
   el.algorithm.value = appState.algorithmId;
+  el.pivot.value = appState.quicksortPivot;
   el.inputType.value = appState.inputTypeId;
 
   appState.arraySize = clampArraySize(Number(el.arraySize.value));
@@ -69,6 +74,11 @@ export function initUI({
 
   el.algorithm.addEventListener('change', () => {
     appState.algorithmId = el.algorithm.value;
+    render();
+  });
+
+  el.pivot.addEventListener('change', () => {
+    appState.quicksortPivot = el.pivot.value;
   });
 
   el.inputType.addEventListener('change', () => {
@@ -120,6 +130,7 @@ export function render() {
   const running = appState.status === STATUS.RUNNING;
   const paused = appState.status === STATUS.PAUSED;
   const busy = running || paused;
+  const algorithm = ALGORITHMS.find((a) => a.id === appState.algorithmId);
 
   el.arraySizeValue.value = String(appState.arraySize);
   el.delayValue.value = formatDelay(appState.delayMs);
@@ -137,6 +148,7 @@ export function render() {
   el.pause.textContent = paused ? '再開' : '一時停止';
   el.stop.disabled = !busy;
   el.algorithm.disabled = busy;
+  el.pivot.disabled = busy || !algorithm?.usesPivot;
   el.inputType.disabled = busy;
   el.arraySize.disabled = busy;
   el.volume.disabled = !appState.soundEnabled;

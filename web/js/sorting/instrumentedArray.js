@@ -60,12 +60,37 @@ export class InstrumentedArray {
     return a === value ? 0 : a < value ? -1 : 1;
   }
 
+  /// Comparison of two values already read out of the array, as in
+  /// BogoCheckSorted's `prev > val` (ArrayItem's operators on copies). It
+  /// counts as one comparison and sounds both values, but reads no element.
+  *compareValues(a, b) {
+    yield { type: 'compare', indices: [], values: [a, b] };
+    return a === b ? 0 : a < b ? -1 : 1;
+  }
+
   *greaterValue(i, value) {
     return (yield* this.compareValue(i, value)) > 0;
   }
 
+  *lessValue(i, value) {
+    return (yield* this.compareValue(i, value)) < 0;
+  }
+
+  *lessOrEqualValue(i, value) {
+    return (yield* this.compareValue(i, value)) <= 0;
+  }
+
+  *greaterOrEqualValue(i, value) {
+    return (yield* this.compareValue(i, value)) >= 0;
+  }
+
   *mark(i, color = 2) {
     yield { type: 'mark', index: i, color };
+  }
+
+  /// Swap the mark colors of two indexes (SortArray::mark_swap).
+  *markSwap(i, j) {
+    yield { type: 'markSwap', indices: [i, j] };
   }
 
   *unmark(i) {

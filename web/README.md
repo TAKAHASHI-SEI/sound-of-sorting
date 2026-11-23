@@ -19,18 +19,25 @@ port 8000 URL.
 ## Current state (Phase 1 + part of Phase 2/3)
 
 - Array generation (all 6 input templates of the original)
-- Canvas bar graph visualization with access/mark colors
-- Bubble Sort, Selection Sort, Insertion Sort, Cocktail Shaker Sort, Gnome Sort,
-  Comb Sort, Odd-Even Sort, Shell Sort and Heap Sort, ported as generators that
-  yield operation events
+- Canvas bar graph visualization with access / watch / mark colors
+  (priority: access > watch > mark)
+- All 29 ported algorithms as generators that yield operation events: Bubble,
+  Selection, Insertion, Binary Insertion, Cocktail Shaker, Gnome, Comb, Odd-Even,
+  Shell, Heap, Smooth, Merge (recursive and iterative) Sort, the five Quick Sort
+  variants (LR ptrs, LL ptrs, ternary LR ptrs, ternary LL ptrs, dual pivot),
+  Cycle Sort, Radix Sort (LSD and MSD), Batcher's Bitonic / Odd-Even Merge
+  sorting networks, Tim Sort, Block Merge Sort (WikiSort), Bogo Sort,
+  Bozo Sort, Stooge Sort and Slow Sort
+- Quick Sort pivot rule selector (`first` / `last` / `mid` / `random` /
+  `median3`), shown only for the Quick Sort variants
 - Start / Pause / Resume / Stop / Reset / Regenerate, array size and animation
   speed
 - Comparison and array access counters
 - Web Audio API sound: value-based frequency, triangle wave and ADSR envelope,
   plus sound on/off, volume and sound sustain (length) controls
 
-Step execution, random run, Quick Sort pivot rules, the remaining algorithms and
-the advanced statistics follow later — see the design document.
+Step execution, random run and the advanced statistics follow later — see the
+design document.
 
 ## Porting scope
 
@@ -39,9 +46,8 @@ the advanced statistics follow later — see the design document.
 - Excluded from the Web target: `std::sort`, `std::stable_sort`,
   `std::sort_heap` (runtime/library dependent and not directly instrumentable in
   the same way)
-- Implemented in the current Web version: 9 algorithms (`Bubble Sort`,
-  `Selection Sort`, `Insertion Sort`, `Cocktail Shaker Sort`, `Gnome Sort`,
-  `Comb Sort`, `Odd-Even Sort`, `Shell Sort`, `Heap Sort`)
+- Implemented in the current Web version: all 29 target algorithms (see the
+  registry in `js/sorting/index.js`)
 
 The detailed list, priorities and the source-to-web mapping are documented in
 [`docs/design.md`](../docs/design.md), especially sections 17 to 20.

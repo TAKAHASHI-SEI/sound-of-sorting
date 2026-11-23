@@ -1,27 +1,28 @@
-// Port of SelectionSort (src/SortAlgo.cpp), adapted to the current Web event
-// model. The original also watches the current minimum index; here we use a
-// temporary mark color until watch-specific rendering is implemented.
+// Port of SelectionSort (src/SortAlgo.cpp). The original watches the current
+// minimum index and swaps its mark color when a new minimum is found.
 
 export function* selectionSort(A) {
+  let jMin = 0;
+  yield* A.watch(jMin, 3);
+
   for (let i = 0; i + 1 < A.size; ++i) {
-    let minIndex = i;
-    yield* A.mark(minIndex, 3);
+    jMin = i;
+    yield* A.watch(jMin, 3);
 
     for (let j = i + 1; j < A.size; ++j) {
-      if (yield* A.less(j, minIndex)) {
-        if (minIndex !== i) yield* A.unmark(minIndex);
-        minIndex = j;
-        yield* A.mark(minIndex, 3);
+      if (yield* A.less(j, jMin)) {
+        yield* A.markSwap(j, jMin);
+        jMin = j;
+        yield* A.watch(jMin, 3);
       }
     }
 
-    if (minIndex !== i) {
-      yield* A.swap(i, minIndex);
-      yield* A.unmark(minIndex);
-    }
+    yield* A.swap(i, jMin);
 
-    yield* A.mark(i, 2);
+    // mark the last good element
+    if (i > 0) yield* A.unmark(i - 1);
+    yield* A.mark(i);
   }
 
-  yield* A.mark(A.size - 1, 2);
+  yield* A.unwatchAll();
 }

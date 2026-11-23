@@ -1,4 +1,5 @@
 import { generateValues } from './utils/arrayUtils.js';
+import { DEFAULT_QUICK_SORT_PIVOT } from './sorting/quickSortPivot.js';
 
 export const STATUS = {
   IDLE: 'idle',
@@ -24,6 +25,8 @@ export const ARRAY_SIZE_MAX = 2048;
 export const appState = {
   status: STATUS.IDLE,
   algorithmId: null,
+  /// Port of g_quicksort_pivot: pivot selection of the Quick Sort variants.
+  quicksortPivot: DEFAULT_QUICK_SORT_PIVOT,
   inputTypeId: 'random',
   arraySize: 32,
   delayMs: 0,
@@ -36,6 +39,8 @@ export const appState = {
   arrayMax: 1,
   /// index -> palette color, set by the algorithm (SortArray::mark)
   marks: new Map(),
+  /// index -> palette color, followed by the algorithm (SortArray::watch)
+  watches: new Map(),
   /// indices touched by the current operation (SortArray::m_access1/2)
   access: [],
   stats: { compares: 0, accesses: 0 },
@@ -88,6 +93,7 @@ export function resetStats() {
 
 export function clearHighlights() {
   appState.marks.clear();
+  appState.watches.clear();
   appState.access = [];
 }
 

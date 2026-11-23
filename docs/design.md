@@ -6,7 +6,7 @@
 | ------- | ---------------------- |
 | プロジェクト名 | sound-of-sorting (web) |
 | 文書種別    | 基本設計書                  |
-| バージョン   | 0.3                    |
+| バージョン   | 0.5                    |
 | 作成日     | 2026-08-21             |
 | 作成者     | 未設定                    |
 | ステータス   | Draft                  |
@@ -19,6 +19,15 @@
 
 バージョン 0.3 での変更点: 現在の Web 実装が設計上のどこまで到達しているかを
 把握しやすくするため、「現行実装との差分」を追加した（第20章）。
+
+バージョン 0.4 での変更点: Quick Sort 系 5 種（LR/LL/ternary LR/ternary LL/dual pivot）と
+ピボット規則 UI、`watch` 系の可視化、Binary Insertion Sort、Merge Sort（再帰／反復）、
+Smooth Sort、Cycle Sort、Radix Sort（LSD/MSD）、Batcher のネットワーク系 2 種を
+実装したことを受け、第4.6節・第19.3節・第20章を現状に合わせて更新した。
+
+バージョン 0.5 での変更点: 残る 6 種（Tim Sort、Block Merge Sort (WikiSort)、
+Bogo Sort、Bozo Sort、Stooge Sort、Slow Sort）を移植し、移植対象 29 種すべてが
+実装済みとなった。これを受け、第20章を更新した。
 
 ***
 
@@ -263,7 +272,7 @@ Web 版では以下のいずれかでこれを再現する。
 | 音声の有効・無効                | Sound トグルボタン（初期 OFF）                 | 同等                      |
 | 音の持続時間                  | Sound Sustain スライダー 0〜2000 → 倍率 1〜50 | 同等                      |
 | 音量                      | **既存版には音量設定がない**（固定振幅 + 自動圧縮）        | Web 版で追加（マスター GainNode） |
-| Quick Sort のピボット規則      | 5種類（Quick Sort 選択時のみ表示）              | Phase 2 以降で移植           |
+| Quick Sort のピボット規則      | 5種類（Quick Sort 選択時のみ表示）              | 同等（`first`/`last`/`mid`/`random`/`median3`） |
 | 統計表示（比較数・アクセス数・転倒数・ラン数） | あり（30fps で更新）                        | Phase 2 以降で移植           |
 
 ***
@@ -975,7 +984,7 @@ SDL の音声コールバックスレッドが取り出してオシレータ化�
 | 停止操作                                                | 既存版は Reset のみ。Web 版では「停止」と「リセット」を分離する       |
 | 音量設定                                                | Web 版で追加（既存版には存在しない）                        |
 | ステップ実行                                              | 既存版にあり。Web 版では Phase 2 以降                   |
-| Quick Sort ピボット規則の UI                               | 既存版にあり。Web 版では Phase 2 以降                   |
+| Quick Sort ピボット規則の UI                               | 既存版にあり。Web 版でも実装済み（Quick Sort 系選択時のみ有効）    |
 | アルゴリズム説明文                                           | 既存版の `AlgoEntry::text` をそのまま流用する（英文、必要なら和訳） |
 
 ***
@@ -990,11 +999,12 @@ SDL の音声コールバックスレッドが取り出してオシレータ化�
 | --------- | ---------------------------------------------------------------- |
 | 画面の基本構成   | 実装済み。単一画面でタイトル、設定、表示領域、操作ボタン、状態表示を備える                            |
 | 配列生成      | 実装済み。既存版と同じ 6 種の入力テンプレートに対応                                      |
-| 描画        | 実装済み。Canvas による棒グラフ表示、アクセス色・マーク色の反映に対応                           |
+| 描画        | 実装済み。Canvas による棒グラフ表示、アクセス色・マーク色・監視（watch）色の反映に対応（優先順位は access > watch > mark） |
 | 実行制御      | 一部実装済み。`開始`、`一時停止`、`再開`、`停止`、`リセット`、`再生成` を実装                  |
 | 速度変更      | 実装済み。スライダーで遅延を変更可能                                               |
 | 統計表示      | 一部実装済み。比較数・アクセス数のみ表示                                             |
-| ソートアルゴリズム | 一部実装済み。Bubble Sort、Selection Sort、Insertion Sort、Cocktail Shaker Sort、Gnome Sort、Comb Sort、Odd-Even Sort、Shell Sort、Heap Sort の 9 種を移植済み |
+| ソートアルゴリズム | 実装済み（移植対象 29 種すべて）。Bubble Sort、Selection Sort、Insertion Sort、Binary Insertion Sort、Cocktail Shaker Sort、Gnome Sort、Comb Sort、Odd-Even Sort、Shell Sort、Heap Sort、Smooth Sort、Merge Sort、Merge Sort (iterative)、Quick Sort (LR/LL/ternary LR/ternary LL/dual pivot)、Cycle Sort、Radix Sort (LSD/MSD)、Batcher's Bitonic Sort、Batcher's Odd-Even Merge Sort、Tim Sort、Block Merge Sort (WikiSort)、Bogo Sort、Bozo Sort、Stooge Sort、Slow Sort の 29 種を移植済み |
+| Quick Sort ピボット規則 | 実装済み。`g_quicksort_pivot` の 5 規則（`first`/`last`/`mid`/`random`/`median3`）に対応し、Quick Sort 系選択時のみ設定 UI を有効化 |
 | イベント駆動構造  | 実装済み。`InstrumentedArray` が操作イベントを生成し、`AnimationController` が消費する |
 | 音声機能      | 一部実装済み。`audioController.js` を追加し、値ベースの周波数・三角波・ADSR を実装。比較／読み書きイベントに接続済み |
 | 音声の UI    | 実装済み。音声 ON/OFF チェックボックス、音量スライダー、持続時間（Sound Sustain）スライダーを追加         |
@@ -1006,10 +1016,7 @@ SDL の音声コールバックスレッドが取り出してオシレータ化�
 | --------------------- | -------------------------------------- |
 | ステップ実行                | 未実装                                    |
 | ランダムアルゴリズム実行          | 未実装                                    |
-| Quick Sort のピボット規則 UI | 未実装                                    |
-| 残りのソートアルゴリズム          | 未実装（移植対象 29 件のうち 9 件が完了）               |
 | 統計表示（転倒数・ラン数）         | 未実装                                    |
-| watch 系の可視化           | 設計あり、UI 反映は未実装                         |
 | 音量の自動圧縮の詳細調整          | 未実装。`DynamicsCompressorNode` と固定振幅で暫定対応中 |
 | 音声の効率的なミキシング          | 未実装。現状は 1 音 1 ノード。負荷が問題になれば `AudioWorklet` へ移行 |
 
@@ -1019,15 +1026,14 @@ SDL の音声コールバックスレッドが取り出してオシレータ化�
 | ---------------- | -- | ---------------------------------------- |
 | 既存版の UI 掲載アルゴリズム | 32 | `g_algolist` 登録分                         |
 | Web 版の移植対象       | 29 | `std::sort` 系 3 件を除く                     |
-| Web 版の実装済み       | 9  | Bubble Sort、Selection Sort、Insertion Sort、Cocktail Shaker Sort、Gnome Sort、Comb Sort、Odd-Even Sort、Shell Sort、Heap Sort |
+| Web 版の実装済み       | 29 | 移植対象 29 件すべて（第17章参照）                     |
 
 ### 20.4 次の実装優先順
 
 現在のコード構成では、以下の順で進めるのが自然である。
 
-1. `Cocktail Shaker Sort`、`Gnome Sort`、`Comb Sort` など基本アルゴリズムを追加する
+1. ステップ実行とランダム実行を実装する
 2. 音声の自動音量圧縮と同時発音数の扱いを既存版に近づける
-3. ステップ実行とランダム実行を実装する
-4. Quick Sort 系の移植とピボット規則 UI を追加する
-5. 既存版の統計表示（転倒数・ラン数）を段階的に移植する
+3. 既存版の統計表示（転倒数・ラン数）を段階的に移植する
+4. ブラウザ実機での動作確認と最終調整を行う
 
