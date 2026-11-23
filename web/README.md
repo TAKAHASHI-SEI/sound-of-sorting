@@ -32,12 +32,15 @@ port 8000 URL.
   `median3`), shown only for the Quick Sort variants
 - Start / Step / Pause / Resume / Stop / Reset / Regenerate / Random, array size
   and animation speed
-- Comparison and array access counters
+- Comparison, array access, inversion and run counters. The inversion counter
+  follows the original `SortArray` semantics: click it to toggle counting on and
+  off, and arrays above the selected algorithm's `inversion_count_limit` show
+  `skipped`
 - Web Audio API sound: value-based frequency, triangle wave and ADSR envelope,
   up to 512 simultaneous voices with automatic volume scaling (1/√n) plus a
   limiter, and sound on/off, volume and sound sustain (length) controls
 
-The advanced statistics follow later — see the design document.
+The remaining item is the AudioWorklet-based mixer — see the design document.
 
 ## Porting scope
 
@@ -77,7 +80,7 @@ The browser requires a user gesture before audio can start, so the
 | `js/sorting/instrumentedArray.js` | `SortArray` counterpart: emits operation events |
 | `js/animation/` | Event playback, pause/stop, delay handling and Canvas drawing |
 | `js/audio/` | Web Audio API sound (`SortSound.cpp` counterpart) |
-| `js/utils/` | Input data templates and helpers |
+| `js/utils/` | Input data templates plus inversion / run counting helpers |
 
 ## License
 

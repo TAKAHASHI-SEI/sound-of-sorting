@@ -99,6 +99,11 @@ canvas {
   font-variant-numeric: tabular-nums;
 }
 
+.status output.clickable {
+  cursor: pointer;
+  text-decoration: underline dotted;
+}
+
 .credit {
   color: #888;
   font-size: 0.75rem;

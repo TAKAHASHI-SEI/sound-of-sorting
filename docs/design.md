@@ -6,7 +6,7 @@
 | ------- | ---------------------- |
 | プロジェクト名 | sound-of-sorting (web) |
 | 文書種別    | 基本設計書                  |
-| バージョン   | 0.7                    |
+| バージョン   | 0.8                    |
 | 作成日     | 2026-08-21             |
 | 作成者     | 未設定                    |
 | ステータス   | Draft                  |
@@ -36,6 +36,12 @@ Bogo Sort、Bozo Sort、Stooge Sort、Slow Sort）を移植し、移植対象 29
 同時発音数に応じて合流バスの `gain` を 1/√n で割る自動音量圧縮を追加し、
 `DynamicsCompressorNode` をリミッタとして調整した。これを受け、第18.6節・
 第20章を更新した。
+
+バージョン 0.8 での変更点: 統計表示に転倒数とラン数を追加した。転倒数は
+`SortArray::GetRuns`/`RecalcInversions` を移植し、Fenwick 木による O(n log n)
+で算出する。アルゴリズムごとの `inversion_count_limit`（第17章）と、
+クリックによる計算の ON/OFF（`SortArray::m_calc_inversions`）にも対応し、
+上限超過時は "skipped" を表示する。これを受け、第19.3節・第20章を更新した。
 
 ***
 
@@ -975,6 +981,8 @@ SDL の音声コールバックスレッドが取り出してオシレータ化�
 | `g_sound_sustain`                    | `state.soundSustain`                                        |
 | `g_sound_on`                         | `state.soundEnabled`                                        |
 | `g_compare_count` / `g_access_count` | `state.stats.compares` / `state.stats.accesses`             |
+| `SortArray::GetInversions()` / `GetRuns()` | `state.stats.inversions` / `state.stats.runs`（`updateArrayStats()`） |
+| `SortArray::m_calc_inversions`       | `state.calcInversions`（クリックで ON/OFF）                         |
 | `SortAlgoThread`（ワーカースレッド）           | `async` ループ + 実行 ID によるキャンセル                                |
 | `wxThread::Pause()` / `Resume()`     | ジェネレータを保持したままループを中断・再開                                      |
 | Stepwise + セマフォ                      | ステップ実行フラグ。1 イベントだけ進める                                       |
@@ -988,7 +996,7 @@ SDL の音声コールバックスレッドが取り出してオシレータ化�
 | --------------------------------------------------- | ------------------------------------------- |
 | `std::sort` / `std::stable_sort` / `std::sort_heap` | 移植対象外（言語ランタイム依存）                            |
 | Record ボタン                                          | 既存版でも非表示・未実装のため対象外                          |
-| 転倒数の O(n^2) 再計算                                     | 既存版同様に上限を設ける。初期版では実装を後回しにする                 |
+| 転倒数の O(n^2) 再計算                                     | 既存版は上限付きの O(n^2) 再計算だが、Web 版は同じ上限を設けつつ Fenwick 木による O(n log n) で算出する |
 | 停止操作                                                | 既存版は Reset のみ。Web 版では「停止」と「リセット」を分離する       |
 | 音量設定                                                | Web 版で追加（既存版には存在しない）                        |
 | ステップ実行                                              | 既存版にあり。Web 版では Phase 2 以降                   |
@@ -997,7 +1005,7 @@ SDL の音声コールバックスレッドが取り出してオシレータ化�
 
 ***
 
-## 20. 現行実装との差分（2026-09 時点）
+## 20. 現行実装との差分（2026-11 時点）
 
 この章は、設計書の全体像と、現在 `web/` 配下に実装済みの範囲との差分を整理するためのものである。
 
@@ -1010,7 +1018,7 @@ SDL の音声コールバックスレッドが取り出してオシレータ化�
 | 描画        | 実装済み。Canvas による棒グラフ表示、アクセス色・マーク色・監視（watch）色の反映に対応（優先順位は access > watch > mark） |
 | 実行制御      | 実装済み。`開始`、`ステップ`、`一時停止`、`再開`、`停止`、`リセット`、`再生成`、`ランダム` を実装        |
 | 速度変更      | 実装済み。スライダーで遅延を変更可能                                               |
-| 統計表示      | 一部実装済み。比較数・アクセス数のみ表示                                             |
+| 統計表示      | 実装済み。比較数・アクセス数・転倒数・ラン数を表示。転倒数はクリックで計算の ON/OFF を切り替え、アルゴリズムごとの上限（`inversion_count_limit`）を超える場合は "skipped" を表示 |
 | ソートアルゴリズム | 実装済み（移植対象 29 種すべて）。Bubble Sort、Selection Sort、Insertion Sort、Binary Insertion Sort、Cocktail Shaker Sort、Gnome Sort、Comb Sort、Odd-Even Sort、Shell Sort、Heap Sort、Smooth Sort、Merge Sort、Merge Sort (iterative)、Quick Sort (LR/LL/ternary LR/ternary LL/dual pivot)、Cycle Sort、Radix Sort (LSD/MSD)、Batcher's Bitonic Sort、Batcher's Odd-Even Merge Sort、Tim Sort、Block Merge Sort (WikiSort)、Bogo Sort、Bozo Sort、Stooge Sort、Slow Sort の 29 種を移植済み |
 | Quick Sort ピボット規則 | 実装済み。`g_quicksort_pivot` の 5 規則（`first`/`last`/`mid`/`random`/`median3`）に対応し、Quick Sort 系選択時のみ設定 UI を有効化 |
 | イベント駆動構造  | 実装済み。`InstrumentedArray` が操作イベントを生成し、`AnimationController` が消費する |
@@ -1022,7 +1030,6 @@ SDL の音声コールバックスレッドが取り出してオシレータ化�
 
 | 項目                    | 状況                                     |
 | --------------------- | -------------------------------------- |
-| 統計表示（転倒数・ラン数）         | 未実装                                    |
 | 音声の効率的なミキシング          | 未実装。現状は 1 音 1 ノード。負荷が問題になれば `AudioWorklet` へ移行 |
 
 ### 20.3 実装済みアルゴリズム数
@@ -1037,6 +1044,6 @@ SDL の音声コールバックスレッドが取り出してオシレータ化�
 
 現在のコード構成では、以下の順で進めるのが自然である。
 
-1. 既存版の統計表示（転倒数・ラン数）を段階的に移植する
-2. ブラウザ実機での動作確認と最終調整を行う（音声の聞き取り調整を含む）
+1. ブラウザ実機での動作確認と最終調整を行う（音声の聞き取り調整を含む）
+2. 必要に応じて音声のミキシングを 1 音 1 ノードから `AudioWorklet` へ移行する
 

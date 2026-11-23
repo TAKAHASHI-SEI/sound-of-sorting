@@ -1,4 +1,4 @@
-import { generateValues } from './utils/arrayUtils.js';
+import { countInversions, countRuns, generateValues } from './utils/arrayUtils.js';
 import { DEFAULT_QUICK_SORT_PIVOT } from './sorting/quickSortPivot.js';
 
 export const STATUS = {
@@ -43,7 +43,12 @@ export const appState = {
   watches: new Map(),
   /// indices touched by the current operation (SortArray::m_access1/2)
   access: [],
-  stats: { compares: 0, accesses: 0 },
+  /// Port of SortArray::m_calc_inversions: can be toggled off by the user.
+  calcInversions: true,
+  /// Port of AlgoEntry::inversion_count_limit: array sizes above this show
+  /// "skipped" instead of the inversion count.
+  inversionLimit: Infinity,
+  stats: { compares: 0, accesses: 0, inversions: null, runs: 0 },
   message: '',
 };
 
@@ -91,6 +96,19 @@ export function resetStats() {
   appState.stats.accesses = 0;
 }
 
+/// Refresh the derived statistics (inversions, runs) from the current array.
+/// Port of the GetInversions()/GetRuns() calls in WMain::RefreshTimer::Notify.
+export function updateArrayStats() {
+  const values = appState.values;
+  appState.stats.runs = values.length > 0 ? countRuns(values) : 0;
+  if (appState.calcInversions && values.length <= appState.inversionLimit) {
+    appState.stats.inversions = countInversions(values);
+  } else {
+    // SortArray sets m_inversions to -1, which the UI shows as "skipped".
+    appState.stats.inversions = null;
+  }
+}
+
 export function clearHighlights() {
   appState.marks.clear();
   appState.watches.clear();
@@ -105,6 +123,8 @@ export function regenerateArray() {
   appState.arrayMax = Math.max(...appState.values);
   clearHighlights();
   resetStats();
+  // SortArray::FinishFill turns inversion counting back on.
+  appState.calcInversions = true;
   appState.status = STATUS.IDLE;
   appState.message = '';
 }
@@ -115,6 +135,7 @@ export function restoreArray() {
   appState.arrayMax = Math.max(1, ...appState.values);
   clearHighlights();
   resetStats();
+  appState.calcInversions = true;
   appState.status = STATUS.IDLE;
   appState.message = '';
 }

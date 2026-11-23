@@ -35,6 +35,7 @@ export const ALGORITHMS = [
     name: 'Bubble Sort',
     run: bubbleSort,
     maxSize: Infinity,
+    inversionCountLimit: Infinity,
     description: '',
   },
   {
@@ -42,6 +43,7 @@ export const ALGORITHMS = [
     name: 'Selection Sort',
     run: selectionSort,
     maxSize: Infinity,
+    inversionCountLimit: Infinity,
     description: '',
   },
   {
@@ -49,6 +51,7 @@ export const ALGORITHMS = [
     name: 'Insertion Sort',
     run: insertionSort,
     maxSize: Infinity,
+    inversionCountLimit: Infinity,
     description: '',
   },
   {
@@ -56,6 +59,7 @@ export const ALGORITHMS = [
     name: 'Binary Insertion Sort',
     run: binaryInsertionSort,
     maxSize: Infinity,
+    inversionCountLimit: Infinity,
     description: '',
   },
   {
@@ -63,6 +67,7 @@ export const ALGORITHMS = [
     name: 'Cocktail Shaker Sort',
     run: cocktailShakerSort,
     maxSize: Infinity,
+    inversionCountLimit: Infinity,
     description: '',
   },
   {
@@ -70,6 +75,7 @@ export const ALGORITHMS = [
     name: 'Gnome Sort',
     run: gnomeSort,
     maxSize: Infinity,
+    inversionCountLimit: Infinity,
     description: '',
   },
   {
@@ -77,6 +83,7 @@ export const ALGORITHMS = [
     name: 'Comb Sort',
     run: combSort,
     maxSize: Infinity,
+    inversionCountLimit: Infinity,
     description: '',
   },
   {
@@ -84,6 +91,7 @@ export const ALGORITHMS = [
     name: 'Odd-Even Sort',
     run: oddEvenSort,
     maxSize: Infinity,
+    inversionCountLimit: 1024,
     description: '',
   },
   {
@@ -91,6 +99,7 @@ export const ALGORITHMS = [
     name: 'Shell Sort',
     run: shellSort,
     maxSize: Infinity,
+    inversionCountLimit: 1024,
     description: '',
   },
   {
@@ -98,6 +107,7 @@ export const ALGORITHMS = [
     name: 'Heap Sort',
     run: heapSort,
     maxSize: Infinity,
+    inversionCountLimit: Infinity,
     description: '',
   },
   {
@@ -105,6 +115,7 @@ export const ALGORITHMS = [
     name: 'Smooth Sort',
     run: smoothSort,
     maxSize: Infinity,
+    inversionCountLimit: 1024,
     description: '',
   },
   {
@@ -112,6 +123,7 @@ export const ALGORITHMS = [
     name: 'Merge Sort',
     run: mergeSort,
     maxSize: Infinity,
+    inversionCountLimit: 512,
     description: '',
   },
   {
@@ -119,6 +131,7 @@ export const ALGORITHMS = [
     name: 'Merge Sort (iterative)',
     run: mergeSortIterative,
     maxSize: Infinity,
+    inversionCountLimit: 512,
     description: '',
   },
   {
@@ -127,6 +140,7 @@ export const ALGORITHMS = [
     run: quickSortLR,
     usesPivot: true,
     maxSize: Infinity,
+    inversionCountLimit: Infinity,
     description: '',
   },
   {
@@ -135,6 +149,7 @@ export const ALGORITHMS = [
     run: quickSortLL,
     usesPivot: true,
     maxSize: Infinity,
+    inversionCountLimit: Infinity,
     description: '',
   },
   {
@@ -143,6 +158,7 @@ export const ALGORITHMS = [
     run: quickSortTernaryLR,
     usesPivot: true,
     maxSize: Infinity,
+    inversionCountLimit: Infinity,
     description: '',
   },
   {
@@ -151,6 +167,7 @@ export const ALGORITHMS = [
     run: quickSortTernaryLL,
     usesPivot: true,
     maxSize: Infinity,
+    inversionCountLimit: Infinity,
     description: '',
   },
   {
@@ -158,6 +175,7 @@ export const ALGORITHMS = [
     name: 'Quick Sort (dual pivot)',
     run: quickSortDualPivot,
     maxSize: Infinity,
+    inversionCountLimit: Infinity,
     description: '',
   },
   {
@@ -165,6 +183,7 @@ export const ALGORITHMS = [
     name: 'Cycle Sort',
     run: cycleSort,
     maxSize: Infinity,
+    inversionCountLimit: Infinity,
     description: '',
   },
   {
@@ -172,6 +191,7 @@ export const ALGORITHMS = [
     name: 'Radix Sort (LSD)',
     run: radixSortLSD,
     maxSize: Infinity,
+    inversionCountLimit: 512,
     description: '',
   },
   {
@@ -179,6 +199,7 @@ export const ALGORITHMS = [
     name: 'Radix Sort (MSD)',
     run: radixSortMSD,
     maxSize: Infinity,
+    inversionCountLimit: Infinity,
     description: '',
   },
   {
@@ -186,6 +207,7 @@ export const ALGORITHMS = [
     name: "Batcher's Bitonic Sort",
     run: bitonicSortNetwork,
     maxSize: Infinity,
+    inversionCountLimit: Infinity,
     description: '',
   },
   {
@@ -193,6 +215,7 @@ export const ALGORITHMS = [
     name: "Batcher's Odd-Even Merge Sort",
     run: batcherSortNetwork,
     maxSize: Infinity,
+    inversionCountLimit: Infinity,
     description: '',
   },
   {
@@ -200,6 +223,7 @@ export const ALGORITHMS = [
     name: 'Tim Sort',
     run: timSort,
     maxSize: Infinity,
+    inversionCountLimit: 512,
     description: '',
   },
   {
@@ -207,6 +231,7 @@ export const ALGORITHMS = [
     name: 'Block Merge Sort (WikiSort)',
     run: wikiSort,
     maxSize: Infinity,
+    inversionCountLimit: 512,
     description: 'An O(1) place O(n log n) time stable merge sort.',
   },
   {
@@ -214,6 +239,7 @@ export const ALGORITHMS = [
     name: 'Bogo Sort',
     run: bogoSort,
     maxSize: 10,
+    inversionCountLimit: Infinity,
     description: '',
   },
   {
@@ -221,6 +247,7 @@ export const ALGORITHMS = [
     name: 'Bozo Sort',
     run: bozoSort,
     maxSize: 10,
+    inversionCountLimit: Infinity,
     description: '',
   },
   {
@@ -228,6 +255,7 @@ export const ALGORITHMS = [
     name: 'Stooge Sort',
     run: stoogeSort,
     maxSize: 256,
+    inversionCountLimit: 512,
     description: '',
   },
   {
@@ -235,6 +263,7 @@ export const ALGORITHMS = [
     name: 'Slow Sort',
     run: slowSort,
     maxSize: 128,
+    inversionCountLimit: 512,
     description: '',
   },
 ];

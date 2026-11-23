@@ -8,6 +8,7 @@ import {
   STATUS,
   STATUS_LABEL,
   sustainFromSlider,
+  updateArrayStats,
   volumeFromSlider,
 } from './state.js';
 import { ALGORITHMS } from './sorting/index.js';
@@ -37,6 +38,8 @@ const el = {
   statusText: document.getElementById('statusText'),
   compareCount: document.getElementById('compareCount'),
   accessCount: document.getElementById('accessCount'),
+  inversionCount: document.getElementById('inversionCount'),
+  runsCount: document.getElementById('runsCount'),
 };
 
 function fillSelect(select, items) {
@@ -129,6 +132,12 @@ export function initUI({
   el.reset.addEventListener('click', onReset);
   el.regenerate.addEventListener('click', onRegenerate);
 
+  // Port of WMain::OnInversionLabelClick: toggle inversion counting.
+  el.inversionCount.addEventListener('click', () => {
+    appState.calcInversions = !appState.calcInversions;
+    render();
+  });
+
   render();
 }
 
@@ -137,6 +146,9 @@ export function render() {
   const paused = appState.status === STATUS.PAUSED;
   const busy = running || paused;
   const algorithm = ALGORITHMS.find((a) => a.id === appState.algorithmId);
+  // The inversion limit follows the selected algorithm (AlgoEntry).
+  appState.inversionLimit = algorithm?.inversionCountLimit ?? Infinity;
+  updateArrayStats();
 
   el.arraySizeValue.value = String(appState.arraySize);
   el.algorithm.value = appState.algorithmId;
@@ -148,6 +160,9 @@ export function render() {
   el.statusText.value = appState.message || STATUS_LABEL[appState.status];
   el.compareCount.value = String(appState.stats.compares);
   el.accessCount.value = String(appState.stats.accesses);
+  el.inversionCount.value =
+    appState.stats.inversions === null ? 'skipped' : String(appState.stats.inversions);
+  el.runsCount.value = String(appState.stats.runs);
 
   el.run.disabled = busy;
   el.run.textContent = '開始';

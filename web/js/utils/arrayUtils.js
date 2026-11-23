@@ -54,3 +54,54 @@ export function isSorted(values) {
   }
   return true;
 }
+
+/// Port of SortArray::GetRuns: number of ascending runs, i.e. descending
+/// adjacent pairs counted plus one.
+export function countRuns(values) {
+  let runs = 1;
+  for (let i = 1; i < values.length; ++i) {
+    if (values[i - 1] > values[i]) ++runs;
+  }
+  return runs;
+}
+
+function lowerBound(sorted, value) {
+  let lo = 0;
+  let hi = sorted.length;
+  while (lo < hi) {
+    const mid = (lo + hi) >> 1;
+    if (sorted[mid] < value) lo = mid + 1;
+    else hi = mid;
+  }
+  return lo;
+}
+
+/// Number of inversions: pairs i < j with values[i] > values[j], the same
+/// quantity as SortArray::RecalcInversions but counted in O(n log n) with a
+/// Fenwick tree over the value ranks instead of O(n^2).
+export function countInversions(values) {
+  const n = values.length;
+  if (n < 2) return 0;
+
+  const sorted = [...values].sort((a, b) => a - b);
+  const bit = new Array(n + 1).fill(0);
+
+  const prefixSum = (index) => {
+    let sum = 0;
+    for (let i = index; i > 0; i -= i & -i) sum += bit[i];
+    return sum;
+  };
+  const add = (index) => {
+    for (let i = index; i <= n; i += i & -i) ++bit[i];
+  };
+
+  let inversions = 0;
+  for (let i = 0; i < n; ++i) {
+    // Equal values share a rank, so they are not counted as inversions
+    // (ArrayItem::greater_direct is a strict comparison).
+    const rank = lowerBound(sorted, values[i]) + 1;
+    inversions += i - prefixSum(rank);
+    add(rank);
+  }
+  return inversions;
+}
