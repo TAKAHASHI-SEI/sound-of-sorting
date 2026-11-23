@@ -34,7 +34,8 @@ port 8000 URL.
   and animation speed
 - Comparison and array access counters
 - Web Audio API sound: value-based frequency, triangle wave and ADSR envelope,
-  plus sound on/off, volume and sound sustain (length) controls
+  up to 512 simultaneous voices with automatic volume scaling (1/√n) plus a
+  limiter, and sound on/off, volume and sound sustain (length) controls
 
 The advanced statistics follow later — see the design document.
 

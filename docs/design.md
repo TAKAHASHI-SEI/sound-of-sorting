@@ -6,7 +6,7 @@
 | ------- | ---------------------- |
 | プロジェクト名 | sound-of-sorting (web) |
 | 文書種別    | 基本設計書                  |
-| バージョン   | 0.6                    |
+| バージョン   | 0.7                    |
 | 作成日     | 2026-08-21             |
 | 作成者     | 未設定                    |
 | ステータス   | Draft                  |
@@ -31,6 +31,11 @@ Bogo Sort、Bozo Sort、Stooge Sort、Slow Sort）を移植し、移植対象 29
 
 バージョン 0.6 での変更点: ステップ実行（1 操作ずつの実行）とランダム実行
 （ランダムなアルゴリズムでの実行）を実装した。これを受け、第20章を更新した。
+
+バージョン 0.7 での変更点: 音声の同時発音数上限を既存版と同じ 512 に合わせ、
+同時発音数に応じて合流バスの `gain` を 1/√n で割る自動音量圧縮を追加し、
+`DynamicsCompressorNode` をリミッタとして調整した。これを受け、第18.6節・
+第20章を更新した。
 
 ***
 
@@ -928,8 +933,8 @@ SDL の音声コールバックスレッドが取り出してオシレータ化�
 | SDL コールバックで自前ミキシング | 方式1: 1 音 = `OscillatorNode`(triangle) + `GainNode` でエンベロープを `setValueCurveAtTime` / ランプで表現。方式2: `AudioWorklet` で既存版のミキシング処理を移植 |
 | `g_sound_on`       | `AudioContext` の状態と有効化フラグ                                                                                                      |
 | 起動時から音声デバイスを確保     | ユーザー操作時に `AudioContext` を生成し `resume()` する                                                                                     |
-| 512 音上限・古い音の置換     | 同時発音数を制限し、超過時は最も古いノードを停止する                                                                                                     |
-| 自動音量圧縮             | マスター段に `DynamicsCompressorNode` を置く、または同時発音数で `gain` を割る                                                                       |
+| 512 音上限・古い音の置換     | 同時発音数を 512 に制限し、超過時は最も古いノードを停止する（実装済み）                                                                        |
+| 自動音量圧縮             | 合流バスの `gain` を同時発音数 `n` に対して `1/√n` で割り、あわせてマスター段の `DynamicsCompressorNode` をリミッタとして用いる（実装済み）                                        |
 | 音量設定なし             | マスター `GainNode` を追加（Web 版独自）                                                                                                   |
 
 初期実装は方式1（`OscillatorNode` ベース）とし、同時発音数が多い場合の負荷が問題になれば
@@ -1009,7 +1014,7 @@ SDL の音声コールバックスレッドが取り出してオシレータ化�
 | ソートアルゴリズム | 実装済み（移植対象 29 種すべて）。Bubble Sort、Selection Sort、Insertion Sort、Binary Insertion Sort、Cocktail Shaker Sort、Gnome Sort、Comb Sort、Odd-Even Sort、Shell Sort、Heap Sort、Smooth Sort、Merge Sort、Merge Sort (iterative)、Quick Sort (LR/LL/ternary LR/ternary LL/dual pivot)、Cycle Sort、Radix Sort (LSD/MSD)、Batcher's Bitonic Sort、Batcher's Odd-Even Merge Sort、Tim Sort、Block Merge Sort (WikiSort)、Bogo Sort、Bozo Sort、Stooge Sort、Slow Sort の 29 種を移植済み |
 | Quick Sort ピボット規則 | 実装済み。`g_quicksort_pivot` の 5 規則（`first`/`last`/`mid`/`random`/`median3`）に対応し、Quick Sort 系選択時のみ設定 UI を有効化 |
 | イベント駆動構造  | 実装済み。`InstrumentedArray` が操作イベントを生成し、`AnimationController` が消費する |
-| 音声機能      | 一部実装済み。`audioController.js` を追加し、値ベースの周波数・三角波・ADSR を実装。比較／読み書きイベントに接続済み |
+| 音声機能      | 実装済み。`audioController.js` が値ベースの周波数・三角波・ADSR、512 音上限、同時発音数に応じた自動音量圧縮（1/√n）とリミッタを実装。比較／読み書きイベントに接続済み |
 | 音声の UI    | 実装済み。音声 ON/OFF チェックボックス、音量スライダー、持続時間（Sound Sustain）スライダーを追加         |
 | 音の持続時間    | 実装済み。`g_sound_sustain` と同じ指数スケール（0〜2000 → 1.0〜50.0、既定 700 → 約 3.9）      |
 
@@ -1018,7 +1023,6 @@ SDL の音声コールバックスレッドが取り出してオシレータ化�
 | 項目                    | 状況                                     |
 | --------------------- | -------------------------------------- |
 | 統計表示（転倒数・ラン数）         | 未実装                                    |
-| 音量の自動圧縮の詳細調整          | 未実装。`DynamicsCompressorNode` と固定振幅で暫定対応中 |
 | 音声の効率的なミキシング          | 未実装。現状は 1 音 1 ノード。負荷が問題になれば `AudioWorklet` へ移行 |
 
 ### 20.3 実装済みアルゴリズム数
@@ -1033,7 +1037,6 @@ SDL の音声コールバックスレッドが取り出してオシレータ化�
 
 現在のコード構成では、以下の順で進めるのが自然である。
 
-1. 音声の自動音量圧縮と同時発音数の扱いを既存版に近づける
-2. 既存版の統計表示（転倒数・ラン数）を段階的に移植する
-3. ブラウザ実機での動作確認と最終調整を行う
+1. 既存版の統計表示（転倒数・ラン数）を段階的に移植する
+2. ブラウザ実機での動作確認と最終調整を行う（音声の聞き取り調整を含む）
 
