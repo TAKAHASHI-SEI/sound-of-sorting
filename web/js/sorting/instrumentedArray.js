@@ -50,6 +50,20 @@ export class InstrumentedArray {
     return (yield* this.compare(i, j)) > 0;
   }
 
+  /// Comparison against a plain value, i.e. ArrayItem's operators with a
+  /// value_type on the right hand side (as in `A[j] > key`). The read of the
+  /// element is part of this event, so it counts as one access like the
+  /// original.
+  *compareValue(i, value) {
+    yield { type: 'compare', indices: [i], values: [value] };
+    const a = this.values[i];
+    return a === value ? 0 : a < value ? -1 : 1;
+  }
+
+  *greaterValue(i, value) {
+    return (yield* this.compareValue(i, value)) > 0;
+  }
+
   *mark(i, color = 2) {
     yield { type: 'mark', index: i, color };
   }

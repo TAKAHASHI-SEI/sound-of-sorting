@@ -16,16 +16,21 @@ python3 -m http.server 8000
 Then open <http://localhost:8000/>. In GitHub Codespaces, use the forwarded
 port 8000 URL.
 
-## Current state (Phase 1)
+## Current state (Phase 1 + part of Phase 2/3)
 
 - Array generation (all 6 input templates of the original)
 - Canvas bar graph visualization with access/mark colors
-- Bubble Sort, ported as a generator that yields operation events
-- Start / Reset / Regenerate, array size and animation speed
+- Bubble Sort, Selection Sort and Insertion Sort, ported as generators that
+  yield operation events
+- Start / Pause / Resume / Stop / Reset / Regenerate, array size and animation
+  speed
 - Comparison and array access counters
+- Web Audio API sound: value-based frequency, triangle wave and ADSR envelope,
+  plus sound on/off and volume controls
 
-Animation, pause/stop, the remaining algorithms and the sound (Web Audio API)
-follow in Phase 2 and 3 — see the design document.
+Step execution, random run, Quick Sort pivot rules, the remaining algorithms,
+Sound Sustain and the advanced statistics follow later — see the design
+document.
 
 ## Porting scope
 
@@ -34,21 +39,25 @@ follow in Phase 2 and 3 — see the design document.
 - Excluded from the Web target: `std::sort`, `std::stable_sort`,
   `std::sort_heap` (runtime/library dependent and not directly instrumentable in
   the same way)
-- Implemented in the current Web version: 1 algorithm (`Bubble Sort`)
+- Implemented in the current Web version: 3 algorithms (`Bubble Sort`,
+  `Selection Sort`, `Insertion Sort`)
 
 The detailed list, priorities and the source-to-web mapping are documented in
 [`docs/design.md`](../docs/design.md), especially sections 17 to 20.
 
-## Sound plan
+## Sound
 
 The original project generates sound from accessed / compared **values**, not
 from indexes. The Web version keeps the same design direction:
 
 - sorting algorithms emit operation events through `InstrumentedArray`
-- the animation controller consumes those events for drawing and counters
-- Web Audio API sound output is planned as Phase 3
+- the animation controller consumes those events for drawing, counters and sound
+- `js/audio/audioController.js` recreates the oscillator design with
+  `OscillatorNode` (triangle) + `GainNode` (ADSR) and a `DynamicsCompressorNode`
+  on the master bus
 
-The target behavior is documented in the design document's sound section.
+The browser requires a user gesture before audio can start, so the
+`AudioContext` is created on the first Start click or sound toggle.
 
 ## Layout
 
@@ -59,7 +68,8 @@ The target behavior is documented in the design document's sound section.
 | `js/ui.js` | DOM inputs, buttons and labels |
 | `js/sorting/` | Algorithm registry and algorithms (`g_algolist` counterpart) |
 | `js/sorting/instrumentedArray.js` | `SortArray` counterpart: emits operation events |
-| `js/animation/` | Event playback, delay handling and Canvas drawing |
+| `js/animation/` | Event playback, pause/stop, delay handling and Canvas drawing |
+| `js/audio/` | Web Audio API sound (`SortSound.cpp` counterpart) |
 | `js/utils/` | Input data templates and helpers |
 
 ## License

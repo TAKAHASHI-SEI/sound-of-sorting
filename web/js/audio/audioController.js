@@ -49,6 +49,7 @@ export class AudioController {
       case 'get':
       case 'swap':
         this.playIndices(event.indices);
+        this.playValues(event.values);
         break;
       case 'set':
         this.playValue(event.value);
@@ -76,8 +77,17 @@ export class AudioController {
   }
 
   playIndices(indices) {
+    if (!indices) return;
     for (const index of indices) {
       this.playValue(appState.values[index]);
+    }
+  }
+
+  /// Values that are not array elements, e.g. the key in `A[j] > key`.
+  playValues(values) {
+    if (!values) return;
+    for (const value of values) {
+      this.playValue(value);
     }
   }
 
