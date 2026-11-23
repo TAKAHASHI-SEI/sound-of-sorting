@@ -994,7 +994,7 @@ SDL の音声コールバックスレッドが取り出してオシレータ化�
 | 実行制御      | 一部実装済み。`開始`、`一時停止`、`再開`、`停止`、`リセット`、`再生成` を実装                  |
 | 速度変更      | 実装済み。スライダーで遅延を変更可能                                               |
 | 統計表示      | 一部実装済み。比較数・アクセス数のみ表示                                             |
-| ソートアルゴリズム | 一部実装済み。Bubble Sort、Selection Sort、Insertion Sort の 3 種を移植済み           |
+| ソートアルゴリズム | 一部実装済み。Bubble Sort、Selection Sort、Insertion Sort、Cocktail Shaker Sort の 4 種を移植済み |
 | イベント駆動構造  | 実装済み。`InstrumentedArray` が操作イベントを生成し、`AnimationController` が消費する |
 | 音声機能      | 一部実装済み。`audioController.js` を追加し、値ベースの周波数・三角波・ADSR を実装。比較／読み書きイベントに接続済み |
 | 音声の UI    | 実装済み。音声 ON/OFF チェックボックス、音量スライダー、持続時間（Sound Sustain）スライダーを追加         |
@@ -1007,7 +1007,7 @@ SDL の音声コールバックスレッドが取り出してオシレータ化�
 | ステップ実行                | 未実装                                    |
 | ランダムアルゴリズム実行          | 未実装                                    |
 | Quick Sort のピボット規則 UI | 未実装                                    |
-| 残りのソートアルゴリズム          | 未実装（移植対象 29 件のうち 3 件が完了）               |
+| 残りのソートアルゴリズム          | 未実装（移植対象 29 件のうち 4 件が完了）               |
 | 統計表示（転倒数・ラン数）         | 未実装                                    |
 | watch 系の可視化           | 設計あり、UI 反映は未実装                         |
 | 音量の自動圧縮の詳細調整          | 未実装。`DynamicsCompressorNode` と固定振幅で暫定対応中 |
@@ -1019,7 +1019,7 @@ SDL の音声コールバックスレッドが取り出してオシレータ化�
 | ---------------- | -- | ---------------------------------------- |
 | 既存版の UI 掲載アルゴリズム | 32 | `g_algolist` 登録分                         |
 | Web 版の移植対象       | 29 | `std::sort` 系 3 件を除く                     |
-| Web 版の実装済み       | 3  | Bubble Sort、Selection Sort、Insertion Sort |
+| Web 版の実装済み       | 4  | Bubble Sort、Selection Sort、Insertion Sort、Cocktail Shaker Sort |
 
 ### 20.4 次の実装優先順
 

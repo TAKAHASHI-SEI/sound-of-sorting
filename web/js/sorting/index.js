@@ -2,6 +2,7 @@
 // (src/SortAlgo.cpp). Algorithms are added here as they are ported.
 
 import { bubbleSort } from './bubbleSort.js';
+import { cocktailShakerSort } from './cocktailShakerSort.js';
 import { insertionSort } from './insertionSort.js';
 import { selectionSort } from './selectionSort.js';
 
@@ -24,6 +25,13 @@ export const ALGORITHMS = [
     id: 'insertion',
     name: 'Insertion Sort',
     run: insertionSort,
+    maxSize: Infinity,
+    description: '',
+  },
+  {
+    id: 'cocktail',
+    name: 'Cocktail Shaker Sort',
+    run: cocktailShakerSort,
     maxSize: Infinity,
     description: '',
   },
