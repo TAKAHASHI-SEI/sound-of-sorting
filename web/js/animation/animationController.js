@@ -88,11 +88,14 @@ export class AnimationController {
     return appState.marks.get(index) ?? 0;
   }
 
-  /// Run one algorithm to completion, returning when it finished or was stopped.
-  async run(algorithm) {
-    if (this.activeRun) return false;
+  /// True while a run is in progress (running, paused or mid-step).
+  isActive() {
+    return this.activeRun !== null;
+  }
 
-    const run = {
+  /// Generator state of one algorithm run over the currently shown array.
+  createRun(algorithm) {
+    return {
       runId: ++this.runId,
       events: algorithm.run(new InstrumentedArray(appState.values), {
         quicksortPivot: appState.quicksortPivot,
@@ -100,12 +103,41 @@ export class AnimationController {
       paused: false,
       processing: false,
     };
+  }
+
+  /// Run one algorithm to completion, returning when it finished or was stopped.
+  async run(algorithm) {
+    if (this.activeRun) return false;
+
+    const run = this.createRun(algorithm);
     this.activeRun = run;
 
     appState.status = STATUS.RUNNING;
     appState.message = '';
     this.onUpdate();
     return this.process(run);
+  }
+
+  /// Advance one event of a stepwise run, starting the run if none is active.
+  /// Port of the Step button (WMain::OnStep): one array operation per click.
+  step(algorithm) {
+    if (this.activeRun && this.activeRun.processing) return false;
+
+    const run = this.activeRun ?? this.createRun(algorithm);
+    this.activeRun = run;
+    run.paused = true;
+    appState.message = '';
+
+    const { done, value } = run.events.next();
+    if (done) {
+      this.finishRun();
+      return true;
+    }
+
+    this.applyEvent(value);
+    appState.status = STATUS.PAUSED;
+    this.onUpdate();
+    return false;
   }
 
   async process(run) {
@@ -151,24 +183,28 @@ export class AnimationController {
 
       if (this.activeRun !== run) return false;
 
-      appState.access = [];
-      // Verification step of SortArray::CheckSorted.
-      if (isSorted(appState.values)) {
-        appState.status = STATUS.COMPLETED;
-        for (let i = 0; i < appState.values.length; ++i) appState.marks.set(i, 2);
-      } else {
-        appState.status = STATUS.ERROR;
-        appState.message = 'ソート結果が正しくありません';
-      }
-      this.audioController?.stopAll();
-      this.activeRun = null;
-      this.onUpdate();
+      this.finishRun();
       return true;
     } finally {
       if (this.activeRun === run) {
         run.processing = false;
       }
     }
+  }
+
+  /// Complete a run: verification step of SortArray::CheckSorted, then release.
+  finishRun() {
+    appState.access = [];
+    if (isSorted(appState.values)) {
+      appState.status = STATUS.COMPLETED;
+      for (let i = 0; i < appState.values.length; ++i) appState.marks.set(i, 2);
+    } else {
+      appState.status = STATUS.ERROR;
+      appState.message = 'ソート結果が正しくありません';
+    }
+    this.audioController?.stopAll();
+    this.activeRun = null;
+    this.onUpdate();
   }
 
   pause() {

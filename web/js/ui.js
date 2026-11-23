@@ -28,10 +28,12 @@ const el = {
   sustain: document.getElementById('sustain'),
   sustainValue: document.getElementById('sustainValue'),
   run: document.getElementById('run'),
+  step: document.getElementById('step'),
   pause: document.getElementById('pause'),
   stop: document.getElementById('stop'),
   reset: document.getElementById('reset'),
   regenerate: document.getElementById('regenerate'),
+  random: document.getElementById('random'),
   statusText: document.getElementById('statusText'),
   compareCount: document.getElementById('compareCount'),
   accessCount: document.getElementById('accessCount'),
@@ -48,6 +50,8 @@ function fillSelect(select, items) {
 
 export function initUI({
   onRun,
+  onStep,
+  onRandom,
   onPause,
   onStop,
   onReset,
@@ -118,6 +122,8 @@ export function initUI({
   });
 
   el.run.addEventListener('click', onRun);
+  el.step.addEventListener('click', onStep);
+  el.random.addEventListener('click', onRandom);
   el.pause.addEventListener('click', onPause);
   el.stop.addEventListener('click', onStop);
   el.reset.addEventListener('click', onReset);
@@ -133,6 +139,7 @@ export function render() {
   const algorithm = ALGORITHMS.find((a) => a.id === appState.algorithmId);
 
   el.arraySizeValue.value = String(appState.arraySize);
+  el.algorithm.value = appState.algorithmId;
   el.delayValue.value = formatDelay(appState.delayMs);
   el.soundEnabled.checked = appState.soundEnabled;
   el.volume.value = String(Math.round(appState.volume * 100));
@@ -144,6 +151,7 @@ export function render() {
 
   el.run.disabled = busy;
   el.run.textContent = '開始';
+  el.step.disabled = running;
   el.pause.disabled = !busy;
   el.pause.textContent = paused ? '再開' : '一時停止';
   el.stop.disabled = !busy;

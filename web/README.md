@@ -30,14 +30,13 @@ port 8000 URL.
   Bozo Sort, Stooge Sort and Slow Sort
 - Quick Sort pivot rule selector (`first` / `last` / `mid` / `random` /
   `median3`), shown only for the Quick Sort variants
-- Start / Pause / Resume / Stop / Reset / Regenerate, array size and animation
-  speed
+- Start / Step / Pause / Resume / Stop / Reset / Regenerate / Random, array size
+  and animation speed
 - Comparison and array access counters
 - Web Audio API sound: value-based frequency, triangle wave and ADSR envelope,
   plus sound on/off, volume and sound sustain (length) controls
 
-Step execution, random run and the advanced statistics follow later — see the
-design document.
+The advanced statistics follow later — see the design document.
 
 ## Porting scope
 
